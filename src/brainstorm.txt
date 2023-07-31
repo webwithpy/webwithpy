@@ -1,0 +1,3 @@
+so whenever we start the server we first want to load all of the html pages
+what we can do is add a prefix to every function like @GET and the will store all the get websites
+then we can
