@@ -1,0 +1,1 @@
+docs are coming sorta not really soon..(atleast 2 months from this bc need something to write about)
