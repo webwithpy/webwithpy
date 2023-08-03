@@ -1,5 +1,5 @@
 from http.server import BaseHTTPRequestHandler
-from wwp_data.html_data import HtmlData
+from ..wwp_data.html_data import HtmlData
 
 
 class HttpHandler(BaseHTTPRequestHandler):
