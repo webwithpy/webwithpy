@@ -20,14 +20,14 @@ class HttpHandler(BaseHTTPRequestHandler):
             handler.wfile.write(b"path not found!")
             return
 
-        func_out = cls._handle_req_func(req_func["func"]())
+        func_out = cls._handle_req_func(req_func["func"](), handler)
 
         handler.wfile.write(func_out)
 
     @classmethod
-    def _handle_req_func(cls, out):
+    def _handle_req_func(cls, out, handler):
         if isinstance(out, HtmlFile):
-            return out.__load()
+            return out.load(handler)
         return str(out).encode('utf-8')
 
     def do_GET(self):
