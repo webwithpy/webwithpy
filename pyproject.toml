@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "webwithpy"
-version = "0.1.1.4"
+version = "0.2"
 description = ""
 authors = ["Sven Keimpema"]
 readme = "README.md"

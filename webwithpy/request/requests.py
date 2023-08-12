@@ -1,4 +1,4 @@
-from ..wwp_streams.html import HtmlData
+from ..streams.html import HtmlData
 
 
 def generate_req_data_from_input(func, req_type: str, **kwargs) -> dict:

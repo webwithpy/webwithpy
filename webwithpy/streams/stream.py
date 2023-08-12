@@ -3,7 +3,8 @@ import aiofiles
 
 
 class Download:
-    def __init__(self, file_path: str):
+    def __init__(self, text, file_path: str):
+        self.text = text
         self.file_path = file_path
 
     async def stream_download(self, resp, req):
@@ -13,6 +14,7 @@ class Download:
             raise FileNotFoundError(f"couldn't find {self.file_path}")
 
         resp.headers['Content-Disposition'] = f'attachment; filename="{file.name}"'
+        resp.content_type = "application/x-octet-stream"
 
         await resp.prepare(req)
 

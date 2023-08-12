@@ -1,5 +1,5 @@
 from webwithpy.request_handlers import HttpHandler
-from .wwp_streams.html import HtmlData
+from .streams.html import HtmlData
 from aiohttp import web
 from aiohttp.web_app import Application
 import asyncio
@@ -16,10 +16,8 @@ def run_server():
     loop.create_task(run_web_app())
     loop.run_forever()
 
-    print(f'Server started running at ??')
 
-
-async def run_web_app() -> int:
+async def run_web_app():
     it = 0
     app = web.Application()
 
@@ -37,5 +35,3 @@ async def run_web_app() -> int:
             continue
         finally:
             break
-
-    return it

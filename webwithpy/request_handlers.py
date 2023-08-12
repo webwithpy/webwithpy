@@ -1,7 +1,8 @@
-from http.server import BaseHTTPRequestHandler
-from .wwp_streams.html import HtmlData
-from .wwp_streams import HtmlFile, Download
+from .streams.html import HtmlData
+from .streams import HtmlFile, Download
+from .app import App
 from aiohttp import web
+from http.server import BaseHTTPRequestHandler
 import inspect
 
 
@@ -11,6 +12,7 @@ class HttpHandler(BaseHTTPRequestHandler):
         """
         generates a web response from the given request 'get' or 'post'
         """
+        App.req = handler
         cls.handler = handler
         cls.req_type = method
 
@@ -52,19 +54,19 @@ class HttpHandler(BaseHTTPRequestHandler):
             rendered_html_text = await func_out.jinja_html_render(cls.handler)
             return web.Response(text=rendered_html_text, content_type="text/html")
         elif isinstance(func_out, Download):
-            resp = web.Response()
+            resp = web.Response(text="hi")
+            # resp = await cls.render_web_response(func_out.text)
             resp = await func_out.stream_download(resp, cls.handler)
 
             return resp
         elif isinstance(func_out, dict):
             return web.json_response(func_out)
 
-        return web.Response(text=func_out, content_type="text/html")
+        return web.Response(text=str(func_out), content_type="text/html")
 
     async def do_GET(self):
         return await HttpHandler.parse_http_handler_req(self, "GET")
 
     async def do_POST(self):
-        print("hi!")
         return await HttpHandler.parse_http_handler_req(self, "POST")
 
