@@ -1,37 +1,49 @@
-from webwithpy.request_handlers import HttpHandler
-from .streams.html import HtmlData
-from aiohttp import web
-from aiohttp.web_app import Application
+import socket
 import asyncio
 
+from asyncio.events import AbstractEventLoop
+from .http.handler import HTTPHandler
+from .http.request import Request
+from .app import App
 
-def add_routes_to_server(app: Application):
-    for route in HtmlData.req_paths:
-        app.router.add_route(route["request_type"], route["url"], HttpHandler.do_GET if route["request_type"] else HttpHandler.do_POST)
+SERVER_HOST = "127.0.0.1"
+SERVER_PORT = 8000
 
 
 def run_server():
-    # TODO: make socket selectable via settings
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server.bind((SERVER_HOST, SERVER_PORT))
+    server.setblocking(False)
+    server.listen(1)
     loop = asyncio.new_event_loop()
-    loop.create_task(run_web_app())
-    loop.run_forever()
+    loop.run_until_complete(load_clients(server, loop))
 
 
-async def run_web_app():
-    it = 0
-    app = web.Application()
+async def load_clients(server: socket.socket, loop: AbstractEventLoop):
+    try:
+        while True:
+            # connect with client
+            client_conn, client_addr = await loop.sock_accept(server)
+            reader, writer = await asyncio.open_connection(sock=client_conn)
+            client_request: str = (await reader.read(1024)).decode()
 
-    add_routes_to_server(app)
+            # add request to app
+            App.request = Request(client_request)
 
-    runner = web.AppRunner(app)
-    await runner.setup()
+            http_handler = HTTPHandler()
+            await loop.create_task(
+                http_handler.handle_client(
+                    server=loop,
+                    client=client_conn,
+                    writer=writer,
+                    client_request=client_request,
+                )
+            )
 
-    while True:
-        try:
-            server = web.TCPSite(runner, '127.0.0.1', 8000 + it)
-            await server.start()
-        except OSError:
-            it += 1
-            continue
-        finally:
-            break
+            await writer.drain()
+            writer.close()
+            await writer.wait_closed()
+
+    except KeyboardInterrupt:
+        server.close()
