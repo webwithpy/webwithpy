@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List
 
 
 class HtmlFile:
@@ -14,33 +15,49 @@ class HtmlFile:
         self.html_py_content: list[str] = self.path.read_text(encoding=self.encoding).split('\n')
 
     def render(self) -> str:
-        self.content = ''
-        parsed_python = ""
-        spacing = ""
+        exec_out = ''
+        parser = HtmlParser(exec_out_name="exec_out")
+        parsed_html_code = parser.render(self.html_py_content)
 
-        for line in self.html_py_content:
-            line = line.strip(' ')
+        lvars = {'self': self, 'exec_out_name': exec_out}
+        exec(parsed_html_code, globals(), lvars)
 
-            # line is python code
-            if '{{' in line:
-                line = line[line.find('{{')+2:line.find('}}')]
+        return exec_out
 
-                if line[0] != '=':
-                    if line == 'pass':
-                        spacing = spacing[0:len(spacing) - 4]
 
-                    parsed_python += spacing + line + "\n"
-                    if ':' in line:
-                        spacing += '    '
-                    continue
-                else:
-                    line = line[1:len(line)]
-                    parsed_python += spacing + f'self.content += {line}\n'
-                    continue
+class HtmlParser:
+    def __init__(self, exec_out_name: str):
+        self.parsed_python = ''
+        # the name of the variable in locals
+        # see HtmlFile.render
+        self.exec_out_name = exec_out_name
 
-            parsed_python += spacing + f'self.content += "{line}"\n'
+    def render(self, html_py_content: List[str]) -> str:
+        spacing = ''
 
-        lvars = {'self': self, 'self.content': self.content}
-        exec(parsed_python, globals(), lvars)
+        for line in html_py_content:
+            current_line = line.strip(' ')
 
-        return self.content
+            if '{{=' in line:
+                self.__draw_var(spacing, current_line)
+            elif '{{pass' in line:
+                spacing = spacing[:-4]
+            elif '{{' in line:
+                self.__render_python(spacing, current_line)
+
+        return self.parsed_python
+
+    def __render_python(self, spacing: str, line: str) -> None:
+        current_line = line[2:-2]
+
+        if current_line == 'pass':
+            spacing = spacing[:-4]
+
+        self.parsed_python += spacing + current_line + "\n"
+
+        if ':' in current_line:
+            spacing += '    '
+
+    def __draw_var(self, spacing: str, line: str) -> None:
+        current_line = line[3:-2]
+        self.parsed_python += spacing + f'exec_out += {current_line}\n'
