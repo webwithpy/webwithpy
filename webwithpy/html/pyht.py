@@ -19,7 +19,7 @@ class HtmlFile:
         parser = HtmlParser(exec_out_name="exec_out")
         parsed_html_code = parser.render(self.html_py_content)
 
-        lvars = {'self': self, 'exec_out_name': exec_out}
+        lvars = {'self': self, 'exec_out': exec_out}
         exec(parsed_html_code, globals(), lvars)
 
         return exec_out
