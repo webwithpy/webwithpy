@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Any
 from os import PathLike
 from ..html.pyht import HtmlFile
 
@@ -10,13 +10,14 @@ class Response:
         self.headers = {}
         self.contents = []
 
-    def add_content(self, content: str, template: Union[str, PathLike] = ""):
+    def add_content(self, content: Any, template: Union[str, PathLike] = ""):
         # TODO: if template exists add this to html file
         # TODO: parse dict
-        self.contents.append(str(content))
         if template != '':
             html_file = HtmlFile(path=template)
-            self.contents.append(html_file.render())
+            self.contents.append(html_file.render(content))
+        else:
+            self.contents.append(str(content))
 
     def add_header(self, header_name, header_value):
         """

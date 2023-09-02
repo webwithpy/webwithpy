@@ -1,6 +1,5 @@
 class Request:
     def __init__(self, req_header: str):
-        print(f"req_header:\n{req_header}\n")
         req_header_as_dict = self.headers_to_dict(req_header)
         self.path = self.parse_path(req_header_as_dict.get("path", '/'))
         self.connection_type = req_header_as_dict.get("Connection", "?!")
@@ -60,7 +59,6 @@ class Request:
 
     @classmethod
     def parse_host(cls, host_header: str):
-        print(f"Host_Header:\n{host_header}\n")
         return host_header.split(" ")[1]
 
     @classmethod
