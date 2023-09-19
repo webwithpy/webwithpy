@@ -23,6 +23,11 @@ class HTTPHandler:
         HTTPHandler.loop = server
         try:
             routed_data = Router.get_data_by_route(self.request.path, self.request.method)
+
+            if routed_data is None:
+                await self.send_response(self.resp.generate_error(500))
+                return
+
             func_out = await routed_data.func() if self.async_func(routed_data.func) else routed_data.func()
             self.resp.add_content(
                 func_out, routed_data.html_template
