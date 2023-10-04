@@ -1,2 +1,2 @@
-from .base import DB
+from .db import DB
 from .objects import Field
