@@ -25,7 +25,7 @@ class FileStmt(Stmt):
         self.file_path = Path(file_path)
 
         if not self.file_path.exists():
-            raise Exception("File path not found")
+            raise Exception(f"File path not found {self.file_path}")
 
     def file_content(self):
         return self.file_path.read_text('utf-8')

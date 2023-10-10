@@ -41,7 +41,6 @@ class DefaultRenderer:
                     # stmt.code is in this case the name of the block.
                     if stmt.code in cls.blocks:
                         lines = cls.blocks[stmt.code].split('\n')
-                        print(lines)
                         for line in lines:
                             cls.code += f'{cls.spacing}{line}\n'
                     else:
@@ -91,4 +90,6 @@ class DefaultRenderer:
         parser = DefaultParser(tokens)
 
         program = parser.parse()
-        DefaultRenderer._render_code(program)
+
+        code = DefaultRenderer._render_code(program)
+        cls.code = code

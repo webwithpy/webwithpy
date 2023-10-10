@@ -14,14 +14,25 @@ class Lexer:
             file_path = Path(file_path)
 
         file_data: List[str] = file_path.read_text().split("\n")
-
-        for line in file_data:
+        idx = 0
+        using_bracket_finder = False
+        while idx < len(file_data):
+            line = file_data[idx]
             if "{{" not in line:
                 tokens.append(Token(data=line, method=Methods.HTML))
+                idx += 1
                 continue
 
             l_bracket = line.find("{{")
             r_bracket = line.find("}}")
+
+            # Add lines until the right bracket is found
+            while r_bracket == -1:
+                line += file_data[idx].strip(" ")
+                r_bracket = line.find("}}")
+                idx += 1
+                using_bracket_finder = True
+
             # make it so that everything outside the brackets is also parsed
             tokens.append(Token(data=line[0:l_bracket], method=Methods.HTML))
             tokens.append(
@@ -29,38 +40,45 @@ class Lexer:
             )
             line = self.__filter_pyht(line=line[l_bracket + 2: r_bracket])
 
-            if line.startswith("include"):
-                # NOTE: include will do the same as extends for the time being, however it might find use in the
-                # future
-                line = line[len("include"): len(line)]
-                line = remove_quotes(line.replace(' ', ''))
-                tokens.append(Token(data=line, method=Methods.INCLUDE))
-            elif line.startswith("extends"):
-                # extending files means including its entire content and putting at the extends loc
-                line = line[len("extends"): len(line)]
-                line = remove_quotes(line.replace(' ', ''))
-                tokens.append(Token(data=line, method=Methods.EXTENDS))
-            elif line.startswith("block"):
-                # code blocks you can place anywhere
-                line = line[len("block"): len(line)]
-                line = remove_quotes(line.replace(' ', ''))
-                tokens.append(Token(data=line, method=Methods.BLOCK))
-            elif line.startswith('='):
-                # this is going to be for drawing python variables to the screen
-                line = line[1: len(line)]
-                tokens.append(Token(data=line, method=Methods.VARIABLE))
-            elif line == "pass":
-                # makes spacing go back, so we can exit out of a for loop for example
-                tokens.append(Token(data='', method=Methods.PASS))
-            elif line == "end":
-                # the end block will do the same as the PASS block, this is just personal preference
-                tokens.append(Token(data='', method=Methods.END))
+            tokens.append(self.get_token_by_line(line))
+
+            if using_bracket_finder:
+                using_bracket_finder = False
             else:
-                tokens.append(Token(data=line, method=Methods.PYTHON))
+                idx += 1
 
         tokens.append(Token(data="EOF", method=Methods.EOF))
-
         return self.filter_tokens(tokens)
+
+    def get_token_by_line(self, line):
+        if line.startswith("include"):
+            # NOTE: include will do the same as extends for the time being, however it might find use in the
+            # future
+            line = line[len("include"): len(line)]
+            line = remove_quotes(line.replace(' ', ''))
+            return Token(data=line, method=Methods.INCLUDE)
+        elif line.startswith("extends"):
+            # extending files means including its entire content and putting at the extends loc
+            line = line[len("extends"): len(line)]
+            line = remove_quotes(line.replace(' ', ''))
+            return Token(data=line, method=Methods.EXTENDS)
+        elif line.startswith("block"):
+            # code blocks you can place anywhere
+            line = line[len("block"): len(line)]
+            line = remove_quotes(line.replace(' ', ''))
+            return Token(data=line, method=Methods.BLOCK)
+        elif line.startswith('='):
+            # this is going to be for drawing python variables to the screen
+            line = line[1: len(line)]
+            return Token(data=line, method=Methods.VARIABLE)
+        elif line == "pass":
+            # makes spacing go back, so we can exit out of a for loop for example
+            return Token(data='', method=Methods.PASS)
+        elif line == "end":
+            # the end block will do the same as the PASS block, this is just personal preference
+            return Token(data='', method=Methods.END)
+        else:
+            return Token(data=line, method=Methods.PYTHON)
 
     def filter_tokens(self, tokens: List[Token]) -> List[Token]:
         index = 0
@@ -86,5 +104,6 @@ class Lexer:
         :return:
         """
         line = line.replace("{{", "").replace("}}", "")
-        line = line.lower()
+        # removes all spaces at start of line
         return line.strip(" ")
+
