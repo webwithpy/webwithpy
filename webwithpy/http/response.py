@@ -9,19 +9,32 @@ class Response:
         self.content_type: str = "text/html"
         self.headers = {}
         self.contents = []
+        self.cache = {}
 
     def add_content(self, content: Any, template: Union[str, PathLike] = ""):
         # TODO: if template exists add this to html file
         # TODO: parse dict
-        if template != '':
-            lexer = Lexer()
-            tokens = lexer.lex_file(template)
-            parser = DefaultParser(tokens)
-            program = parser.parse()
-            renderer = DefaultRenderer()
-            self.contents.append(renderer.render(program))
+        if template != "":
+            if not isinstance(content, dict):
+                content = {}
+            rendered = (
+                self.parse_template(template, **content)
+                if template not in self.cache
+                else DefaultRenderer.render_pre(self.cache[template], **content)
+            )
+            self.contents.append(rendered)
         else:
             self.contents.append(str(content))
+
+    def parse_template(self, template: Union[str, PathLike], **kwargs):
+        lexer = Lexer()
+        tokens = lexer.lex_file(template)
+        parser = DefaultParser(tokens)
+        program = parser.parse()
+        code = DefaultRenderer.generate_pre_code(program)
+        self.cache[template] = code
+
+        return DefaultRenderer.render_pre(code, **kwargs)
 
     def add_header(self, header_name, header_value):
         """
@@ -30,7 +43,7 @@ class Response:
         self.headers[header_name] = header_value
 
     def encode(self):
-        return self.build_response().encode('utf-8')
+        return self.build_response().encode("utf-8")
 
     def build_response(self) -> str:
         response: str = f"HTTP/{self.http_version}\nContent-Type: {self.content_type}\n"
@@ -48,7 +61,6 @@ class Response:
             return f"HTTP/{self.http_version} 500 SERVER ERROR\n\n<h1>Unexpected Exception</h1>"
 
         return f"HTTP/{self.http_version} 500 SERVER ERROR\n\n<h1>Unexpected Error Code(Not Implemented)</h1>"
-
 
     def use_json(self):
         self.content_type = "text/json"

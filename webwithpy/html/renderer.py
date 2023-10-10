@@ -15,7 +15,7 @@ class DefaultRenderer:
     spacing = ''
 
     @classmethod
-    def _render_code(cls, program: List[Stmt]) -> str:
+    def generate_pre_code(cls, program: List[Stmt]) -> str:
         for index, stmt in enumerate(program):
             match stmt.kind:
                 case "block":
@@ -24,7 +24,7 @@ class DefaultRenderer:
                     copied_spacing = cls.spacing
                     cls.code = cls.spacing = ''
 
-                    cls._render_code(stmt.block_data)
+                    cls.generate_pre_code(stmt.block_data)
 
                     block_code = cls.code
                     cls.blocks[stmt.name] = block_code
@@ -63,7 +63,15 @@ class DefaultRenderer:
     
     @classmethod
     def render(cls, program: List[Stmt], **kwargs) -> str:
-        code = cls._render_code(program=program)
+        code = cls.generate_pre_code(program=program)
+        kwargs['html'] = ''
+        kwargs['RenderBlock'] = RenderBlock
+        exec(code, {}, kwargs)
+
+        return kwargs['html']
+
+    @classmethod
+    def render_pre(cls, code, **kwargs):
         kwargs['html'] = ''
         kwargs['RenderBlock'] = RenderBlock
         exec(code, {}, kwargs)
@@ -91,5 +99,5 @@ class DefaultRenderer:
 
         program = parser.parse()
 
-        code = DefaultRenderer._render_code(program)
+        code = DefaultRenderer.generate_pre_code(program)
         cls.code = code
