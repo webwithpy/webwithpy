@@ -1,9 +1,12 @@
+import uuid
+
+
 class Query:
     def __init__(
-        self, db, dialect, conn=None, operator="=", first=None, second=None, tbl_name: str = None
+        self, *, conn=None, cursor=None, dialect=None, operator="=", first=None, second=None, tbl_name: str = None
     ):
-        self.conn= conn
-        self.db = db
+        self.conn = conn
+        self.cursor = cursor
         self.dialect = dialect
         self.operator = operator
         self.first = first
@@ -18,10 +21,10 @@ class Query:
         :return:
         """
         if fields is None:
-            fields = self.db.tables[self.table_name].fields.keys()
+            fields = self.cursor.tables[self.table_name].fields.keys()
 
         sql = self._insert(fields=fields, values=values)
-        self.db.execute(sql)
+        self.cursor.execute(sql)
         self.conn.commit()
 
     def select(self, *fields: tuple, distinct=False, orderby=None) -> list[dict]:
@@ -56,7 +59,7 @@ class Query:
 
         # however we can only join the tables if there are more then 1 table
         if len(tables) > 1:
-            join += self.tbls_to_join(tables)
+            join += self._tbls_to_join(tables)
 
         # if there is a where statement, add it to the join statement
         fields = ", ".join(fields) if isinstance(fields, list) else fields
@@ -68,7 +71,28 @@ class Query:
             fields=fields, tables=join, where=where, distinct=distinct, orderby=orderby
         )
 
-        return self.db.execute(sql).fetchall()
+        return self.cursor.execute(sql).fetchall()
+
+    def update(self, **values):
+        unpacked = self.dialect.unpack(self)
+        tables, where = self._unpacked_as_sql(unpacked).values()
+
+        # the join statement will start with the first table, the order of these tables should not matter
+        # so we just select the first table and join the rest of the tables
+        join = f"{tables[0]} "
+
+        # however we can only join the tables if there are more then 1 table
+        if len(tables) > 1:
+            join += self._tbls_to_join(tables)
+
+        update_vals = self._set(values)
+        sql = self._update(first_table=tables[0], table=join, update_vals=update_vals, where=where)
+        print(sql)
+        self.cursor.execute(sql)
+        self.conn.commit()
+
+    def _update(self, first_table: str, table: str, update_vals: str, where: str):
+        return f"UPDATE {first_table} SET {update_vals} WHERE EXISTS (SELECT 1 FROM {table} {where})"
 
     def _insert(self, fields, values):
         return f"INSERT INTO {self.table_name} ({', '.join(fields)}) VALUES ({', '.join([str(val) for val in values.values()])})"
@@ -76,7 +100,7 @@ class Query:
     def _select(self, fields, tables, where=None, distinct=None, orderby=None):
         return f"SELECT {distinct}{fields} FROM {tables}{where}{orderby}"
 
-    def tbls_to_join(self, tables):
+    def _tbls_to_join(self, tables):
         sql = f""
         for table in tables[1:]:
             sql += f" INNER JOIN {table} "
@@ -118,8 +142,21 @@ class Query:
 
         return dict(table=table, where=where)
 
+    def _set(self, values: dict):
+        sql = ''
+        first_done = False
+        for key, value in values.items():
+            if first_done:
+                sql += ', '
+            if str(value).isdigit():
+                sql += f"{key} = {value} "
+            else:
+                sql += f"{key} = {value} "
+            first_done = True
+        return sql
+
     def __and__(self, other):
-        return Query(self.db, self.dialect, self.dialect.and_, self, other)
+        return Query(conn=self.conn, cursor=self.cursor, dialect=self.dialect, operator=self.dialect.and_, first=self, second=other)
 
     def __or__(self, other):
-        return Query(self.db, self.dialect, self.dialect.or_, self, other)
+        return Query(conn=self.conn, cursor=self.cursor, dialect=self.dialect, operator=self.dialect.or_, first=self, second=other)

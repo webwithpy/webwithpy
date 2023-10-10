@@ -37,6 +37,7 @@ class DB:
         for field in fields:
             field.table_name = table_name
             field.cursor = self.cursor
+            field.conn = self.conn
 
         tbl = Table(self.conn, self.cursor, table_name, fields)
         self.tables[table_name] = tbl

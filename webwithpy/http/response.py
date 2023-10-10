@@ -1,6 +1,6 @@
 from typing import Union, Any
 from os import PathLike
-from ..html.pyht import HtmlFile
+from ..html import Lexer, DefaultParser, DefaultRenderer
 
 
 class Response:
@@ -14,8 +14,12 @@ class Response:
         # TODO: if template exists add this to html file
         # TODO: parse dict
         if template != '':
-            html_file = HtmlFile(path=template)
-            self.contents.append(html_file.render(content))
+            lexer = Lexer()
+            tokens = lexer.lex_file(template)
+            parser = DefaultParser(tokens)
+            program = parser.parse()
+            renderer = DefaultRenderer()
+            self.contents.append(renderer.render(program))
         else:
             self.contents.append(str(content))
 

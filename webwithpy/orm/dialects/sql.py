@@ -6,7 +6,7 @@ class SQLDialect:
     lt = '<'
     le = '<='
     gt = '>'
-    gr = '>='
+    ge = '>='
 
     @classmethod
     def sql_str(cls, value):

@@ -7,6 +7,13 @@ import asyncio
 
 
 class HTTPHandler:
+    def __init__(self):
+        self.server = None
+        self.client = None
+        self.writer = None
+        self.request = None
+        self.resp = None
+
     async def handle_client(
         self,
         server: AbstractEventLoop,
