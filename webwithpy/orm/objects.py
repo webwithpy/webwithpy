@@ -3,11 +3,11 @@ from .query import Query
 
 
 class Field:
-    def __init__(self, field_name, field_type):
+    def __init__(self, field_type):
         self.conn = None
         self.cursor = None
         self.table_name = ""
-        self.field_name = field_name
+        self.field_name = ""
         self.field_type = self._translate_type(field_type)
 
     def _translate_type(self, field_type):

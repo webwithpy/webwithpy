@@ -14,41 +14,66 @@ def dict_factory(cursor, row):
 
 
 class DB:
+    conn = None
     cursor = None
 
     def __init__(self, db_path: Union[Path, str]):
-        if isinstance(db_path, str):
-            db_path = Path(db_path)
+        if DB.conn is None and DB.cursor is None:
+            if isinstance(db_path, str):
+                db_path = Path(db_path)
 
-        # make sure the db exists
-        db_path.touch()
+            # make sure the db exists
+            db_path.touch()
 
-        self.conn = sqlite.connect(db_path)
-        self.conn.row_factory = dict_factory
-        DB.cursor = self.conn.cursor()
+            self.conn = sqlite.connect(db_path)
+            self.conn.row_factory = dict_factory
+
+            DB.conn = self.conn
+            DB.cursor = self.conn.cursor()
+        else:
+            # if 2 db objects are created we want to make sure we use the same conn
+            self.cursor = DB.cursor
+            self.conn = DB.conn
 
         self.tables = {}
 
-    def create_table(self, table_name: str, *fields: Field):
-        fields = list(fields)
-        id_field = Field('id', 'INTEGER PRIMARY KEY AUTOINCREMENT')
-        fields.insert(0, id_field)
+    def create_tables(self):
+        id_field = Field(field_type="INTEGER PRIMARY KEY AUTOINCREMENT")
 
-        for field in fields:
-            field.table_name = table_name
-            field.cursor = self.cursor
-            field.conn = self.conn
+        for table in Table.__subclasses__():
+            table_name = (
+                table.table_name if "table_name" in vars(table) else table.__name__
+            )
 
-        tbl = Table(self.conn, self.cursor, table_name, fields)
-        self.tables[table_name] = tbl
+            table_fields = {
+                var: vars(table)[var]
+                for var in vars(table)
+                if isinstance(vars(table)[var], Field)
+            }
 
-        self._create_table(table_name, *fields)
+            table_fields["id"] = id_field
+
+            for field_name, field in table_fields.items():
+                field.field_name = field_name
+                field.table_name = table_name
+                field.cursor = self.cursor
+                field.conn = self.conn
+
+            tbl = Table(
+                self.conn,
+                self.cursor,
+                table_name,
+                [value for value in table_fields.values()],
+            )
+
+            self.tables[table_name] = tbl
+            self._create_table(table_name, *[field for field in table_fields.values()])
 
     def _create_table(self, table_name: str, *fields: Field):
-        sql = f'CREATE TABLE IF NOT EXISTS {table_name} ('
+        sql = f"CREATE TABLE IF NOT EXISTS {table_name} ("
         for field in fields:
-            sql += f'{field.field_name} {field.field_type}, '
-        sql = sql[:-2] + ')'
+            sql += f"{field.field_name} {field.field_type}, "
+        sql = sql[:-2] + ")"
         self.cursor.execute(sql)
 
     def __getattribute__(self, item):
