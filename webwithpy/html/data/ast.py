@@ -4,7 +4,7 @@ from pathlib import Path
 
 class Stmt:
     def __init__(self):
-        self.kind = None
+        self.kind = ""
 
     def __str__(self):
         return self.kind

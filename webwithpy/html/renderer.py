@@ -2,8 +2,11 @@ from .data.ast import Block, Stmt, Include, Extends, Python, Html, Variable
 from .lexer import Lexer
 from .parser import DefaultParser
 from typing import List
+from numba import types, njit
+from numba.experimental import jitclass
 
 
+@jitclass([('code', types.string)])
 class RenderBlock:
     def __init__(self, code: str):
         self.code = code
@@ -15,7 +18,11 @@ class DefaultRenderer:
     spacing = ''
 
     @classmethod
-    def generate_pre_code(cls, program: List[Stmt]) -> str:
+    def generate_pre_code(cls, program: List[Stmt], spacing: str='') -> str:
+        # we might need to start with diff spacing for fast impl
+        if len(spacing) > 0:
+            cls.spacing = spacing
+
         for index, stmt in enumerate(program):
             match stmt.kind:
                 case "block":
@@ -24,9 +31,8 @@ class DefaultRenderer:
                     copied_spacing = cls.spacing
                     cls.code = cls.spacing = ''
 
-                    cls.generate_pre_code(stmt.block_data)
+                    block_code = cls.generate_pre_code(stmt.block_data)
 
-                    block_code = cls.code
                     cls.blocks[stmt.name] = block_code
                     cls.code, cls.spacing = [copied_code, copied_spacing]
                 case "extends":
@@ -75,13 +81,6 @@ class DefaultRenderer:
         kwargs['html'] = ''
         kwargs['RenderBlock'] = RenderBlock
         exec(code, {}, kwargs)
-
-        return kwargs['html']
-
-    @classmethod
-    def render_pre(cls, rendered_code: str, **kwargs) -> str:
-        kwargs['html'] = ''
-        exec(rendered_code, {}, kwargs)
 
         return kwargs['html']
 
