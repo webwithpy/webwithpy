@@ -2,11 +2,8 @@ from .data.ast import Block, Stmt, Include, Extends, Python, Html, Variable
 from .lexer import Lexer
 from .parser import DefaultParser
 from typing import List
-from numba import types, njit
-from numba.experimental import jitclass
 
 
-@jitclass([('code', types.string)])
 class RenderBlock:
     def __init__(self, code: str):
         self.code = code

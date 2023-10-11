@@ -1,6 +1,3 @@
-from numba import njit
-
-
 class Query:
     def __init__(
         self,
@@ -179,7 +176,6 @@ class Query:
 
         return dict(table=table, where=where)
 
-    @njit
     def _set(self, values: dict):
         sql = ""
         first_done = False
