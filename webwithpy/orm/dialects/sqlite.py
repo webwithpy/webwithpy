@@ -5,26 +5,12 @@ from ..query import Query
 class SqliteDialect(SQLDialect):
     @classmethod
     def unpack(cls, query: Query) -> dict:
-        return cls._unpack(query)
+        def recursive_unpack(q):
+            if isinstance(q, Query):
+                fields, stmts = recursive_unpack(q.first) + q.operator + recursive_unpack(q.second)
+                return fields, stmts
+            else:
+                return [q], []
 
-    @classmethod
-    def _unpack(cls, query: Query) -> dict:
-        unpacked_query = {'fields': [], 'stmts': []}
-
-        if isinstance(query.first, Query):
-            unpacked = cls._unpack(query.first)
-            unpacked_query['fields'] += unpacked['fields']
-            unpacked_query['stmts'] += unpacked['stmts']
-        else:
-            unpacked_query['fields'].append(query.first)
-
-        unpacked_query['stmts'].append(query.operator)
-
-        if isinstance(query.second, Query):
-            unpacked = cls._unpack(query.second)
-            unpacked_query['fields'] += unpacked['fields']
-            unpacked_query['stmts'] += unpacked['stmts']
-        else:
-            unpacked_query['fields'].append(query.second)
-
-        return unpacked_query
+        fields, stmts = recursive_unpack(query)
+        return {'fields': fields, 'stmts': stmts}

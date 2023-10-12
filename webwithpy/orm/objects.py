@@ -6,6 +6,7 @@ class Field:
     def __init__(self, field_type):
         self.conn = None
         self.cursor = None
+        self.driver = None
         self.table_name = ""
         self.field_name = ""
         self.field_type = self._translate_type(field_type)
@@ -37,6 +38,7 @@ class Field:
             cursor=self.cursor,
             dialect=SqliteDialect,
             operator=SqliteDialect.equals,
+            driver=self.driver,
             first=self,
             second=other,
         )
@@ -47,6 +49,7 @@ class Field:
             cursor=self.cursor,
             dialect=SqliteDialect,
             operator=SqliteDialect.neq,
+            driver=self.driver,
             first=self,
             second=other,
         )
@@ -57,6 +60,7 @@ class Field:
             cursor=self.cursor,
             dialect=SqliteDialect,
             operator=SqliteDialect.lt,
+            driver=self.driver,
             first=self,
             second=other,
         )
@@ -67,6 +71,7 @@ class Field:
             cursor=self.cursor,
             dialect=SqliteDialect,
             operator=SqliteDialect.le,
+            driver=self.driver,
             first=self,
             second=other,
         )
@@ -77,6 +82,7 @@ class Field:
             cursor=self.cursor,
             dialect=SqliteDialect,
             operator=SqliteDialect.gt,
+            driver=self.driver,
             first=self,
             second=other,
         )
@@ -87,6 +93,7 @@ class Field:
             cursor=self.cursor,
             dialect=SqliteDialect,
             operator=SqliteDialect.ge,
+            driver=self.driver,
             first=self,
             second=other,
         )
