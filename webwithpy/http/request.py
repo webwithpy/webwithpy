@@ -7,6 +7,7 @@ class Request:
         self.origin = req_header_as_dict.get("Origin", None)
         self.vars = req_header_as_dict.get("vars", {})
         self.method = self.parse_method(req_header_as_dict.get("path", 'ANY'))
+        self.cookies = self.parse_cookies(req_header_as_dict.get('Cookie', ''))
 
     @classmethod
     def headers_to_dict(cls, full_header: str) -> dict:
@@ -64,3 +65,17 @@ class Request:
     @classmethod
     def HTTP_type(cls, path_header):
         return path_header.split(" ")[1]
+
+    @classmethod
+    def parse_cookies(cls, cookies_as_str: str):
+        if len(cookies_as_str) == 0:
+            return {}
+
+        cookies_dict = {}
+
+        for cookie in cookies_as_str.split(';'):
+            print(cookie)
+            k, v = cookie.split('=')
+            cookies_dict[k] = v
+
+        return cookies_dict

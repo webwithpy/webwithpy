@@ -6,6 +6,7 @@ class Field:
     def __init__(self, field_type):
         self.conn = None
         self.cursor = None
+        self.driver = None
         self.table_name = ""
         self.field_name = ""
         self.field_type = self._translate_type(field_type)
@@ -37,6 +38,7 @@ class Field:
             cursor=self.cursor,
             dialect=SqliteDialect,
             operator=SqliteDialect.equals,
+            driver=self.driver,
             first=self,
             second=other,
         )
@@ -47,6 +49,7 @@ class Field:
             cursor=self.cursor,
             dialect=SqliteDialect,
             operator=SqliteDialect.neq,
+            driver=self.driver,
             first=self,
             second=other,
         )
@@ -57,6 +60,7 @@ class Field:
             cursor=self.cursor,
             dialect=SqliteDialect,
             operator=SqliteDialect.lt,
+            driver=self.driver,
             first=self,
             second=other,
         )
@@ -67,6 +71,7 @@ class Field:
             cursor=self.cursor,
             dialect=SqliteDialect,
             operator=SqliteDialect.le,
+            driver=self.driver,
             first=self,
             second=other,
         )
@@ -77,6 +82,7 @@ class Field:
             cursor=self.cursor,
             dialect=SqliteDialect,
             operator=SqliteDialect.gt,
+            driver=self.driver,
             first=self,
             second=other,
         )
@@ -87,6 +93,7 @@ class Field:
             cursor=self.cursor,
             dialect=SqliteDialect,
             operator=SqliteDialect.ge,
+            driver=self.driver,
             first=self,
             second=other,
         )
@@ -98,15 +105,6 @@ class Table:
         self.cursor = db
         self.table_name = table_name
         self.fields: dict = {field.field_name: field for field in fields}
-
-    def __getattribute__(self, item):
-        try:
-            return super(Table, self).__getattribute__(item)
-        except Exception as e:
-            if item in self.fields.keys():
-                return self.fields[item]
-
-            raise e
 
     def insert(self, **values):
         return Query(
@@ -128,3 +126,12 @@ class Table:
 
     def _get_field_names_sql(self):
         return [f"`{field}`" for field in self._get_field_names()]
+
+    def __getattribute__(self, item):
+        try:
+            return super(Table, self).__getattribute__(item)
+        except Exception as e:
+            if item in self.fields.keys():
+                return self.fields[item]
+
+            raise e

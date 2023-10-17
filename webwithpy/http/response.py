@@ -4,12 +4,13 @@ from ..html import Lexer, DefaultParser, DefaultRenderer
 
 
 class Response:
-    def __init__(self):
+    def __init__(self, session):
         self.http_version: str = "1.1"
         self.content_type: str = "text/html"
         self.headers = {}
         self.contents = []
         self.cache = {}
+        self.cookies = {"session": session}
 
     def add_content(self, content: Any, template: Union[str, PathLike] = ""):
         # TODO: if template exists add this to html file
@@ -42,14 +43,19 @@ class Response:
         """
         self.headers[header_name] = header_value
 
+    def add_cookie(self, cookie_name, cookie_value):
+        self.cookies[cookie_name] = cookie_value
+
     def encode(self):
         return self.build_response().encode("utf-8")
 
     def build_response(self) -> str:
         response: str = f"HTTP/{self.http_version}\nContent-Type: {self.content_type}\n"
 
-        for k, v in self.headers:
+        for k, v in self.headers.items():
             response += f"{k}: {v}\n"
+
+        response += f"Set-Cookie: {';'.join([f'{k}={v}' for k, v in self.cookies.items()])}"
 
         response += "\n"
         response += "\n".join(self.contents)

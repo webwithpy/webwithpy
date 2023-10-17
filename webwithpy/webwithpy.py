@@ -29,6 +29,7 @@ async def load_clients(server: socket.socket, loop: AbstractEventLoop):
             client_request: str = (await reader.read(1024)).decode()
 
             # add request to app
+            App.server_path = SERVER_HOST
             App.request = Request(client_request)
 
             http_handler = HTTPHandler()
