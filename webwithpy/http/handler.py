@@ -1,10 +1,12 @@
+from ..app import App
 from ..routing.router import Router
 from .request import Request
 from .response import Response
 from asyncio import AbstractEventLoop, StreamWriter
 import socket
 import asyncio
-
+import traceback
+import uuid
 
 class HTTPHandler:
     def __init__(self):
@@ -25,7 +27,7 @@ class HTTPHandler:
         self.client = client
         self.writer = writer
         self.request: Request = Request(client_request)
-        self.resp: Response = Response()
+        self.resp: Response = Response(self.request.cookies.get('session', f"{uuid.uuid4()}{uuid.uuid4()}"))
 
         HTTPHandler.loop = server
         try:
@@ -39,9 +41,9 @@ class HTTPHandler:
             self.resp.add_content(
                 func_out, routed_data.html_template
             )
-        except Exception as e:
+        except Exception:
             await self.send_response(self.resp.generate_error(500))
-            raise e
+            traceback.print_exc()
 
         # only send response after try catch bc if something goes wrong while sending the response it will give
         # a completely different exception

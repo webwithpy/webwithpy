@@ -1,9 +1,6 @@
-from .query import Query
 from .objects import Table, Field
-from .dialects.sqlite import SqliteDialect
 from sqlite3 import dbapi2 as sqlite
 from pathlib import Path
-from typing import Union
 
 
 def dict_factory(cursor, row):
@@ -19,8 +16,8 @@ class DB:
     driver = None
     tables = None
 
-    def __init__(self, db_path: Union[Path, str]):
-        driver, db_path = str(db_path).split('/')
+    def __init__(self, db_path: str):
+        driver, db_path = db_path.split(':/')
 
         if DB.driver is None:
             DB.driver = self._get_driver(driver)
@@ -61,6 +58,7 @@ class DB:
                 field.table_name = table_name
                 field.cursor = DB.cursor
                 field.conn = DB.conn
+                field.driver = DB.driver
 
             tbl = Table(
                 DB.conn,
@@ -72,15 +70,17 @@ class DB:
             DB.tables[table_name] = tbl
             self._create_table(table_name, *[field for field in table_fields.values()])
 
-    def _get_driver(self, driver: str):
+    @classmethod
+    def _get_driver(cls, driver: str):
         match driver:
             case 'sqlite':
                 from .drivers.sqlite import SqliteDriver
                 from .dialects.sqlite import SqliteDialect
-                return SqliteDriver(self.table)
-        return ""
+                return SqliteDriver(SqliteDialect)
+        raise Exception(f"{driver} is not a valid driver!")
 
-    def _create_table(self, table_name: str, *fields: Field):
+    @classmethod
+    def _create_table(cls, table_name: str, *fields: Field):
         sql = f"CREATE TABLE IF NOT EXISTS {table_name} ("
 
         for field in fields:

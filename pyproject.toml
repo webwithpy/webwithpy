@@ -7,8 +7,9 @@ readme = "README.md"
 packages = [{include = "webwithpy/**/*.*", format = "sdist"}]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.11"
 asyncio = "^3.4.3"
+pyjwt = "^2.8.0"
 
 [build-system]
 requires = ["poetry-core"]

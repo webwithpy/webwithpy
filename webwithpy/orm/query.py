@@ -20,6 +20,10 @@ class Query:
         self.second = second
         self.table_name = tbl_name
 
+    def __tables__(self):
+        unpacked_query = self.dialect.unpack(self)
+        return self.driver._unpacked_as_sql(unpacked_query)['tables']
+
     def insert(self, fields=None, **values) -> None:
         """
         NOTE ALL FIELDS ARE REQUIRED TO USE THE INSERT CURRENTLY
@@ -44,18 +48,18 @@ class Query:
         """
 
         # generate the select statement from what we have generated above
-        sql = self.driver.select_sql(*fields, distinct=distinct, orderby=orderby)
+        sql = self.driver.select_sql(*fields, query=self, distinct=distinct, orderby=orderby)
 
         return self.cursor.execute(sql).fetchall()
 
     def update(self, **values):
-        sql = self.driver.update(**values)
+        sql = self.driver.update(query=self, **values)
 
         self.cursor.execute(sql)
         self.conn.commit()
 
     def delete(self):
-        sql = self.driver.delete()
+        sql = self.driver.delete(query=self)
 
         self.cursor.execute(sql)
         self.conn.commit()

@@ -106,15 +106,6 @@ class Table:
         self.table_name = table_name
         self.fields: dict = {field.field_name: field for field in fields}
 
-    def __getattribute__(self, item):
-        try:
-            return super(Table, self).__getattribute__(item)
-        except Exception as e:
-            if item in self.fields.keys():
-                return self.fields[item]
-
-            raise e
-
     def insert(self, **values):
         return Query(
             conn=self.conn,
@@ -135,3 +126,12 @@ class Table:
 
     def _get_field_names_sql(self):
         return [f"`{field}`" for field in self._get_field_names()]
+
+    def __getattribute__(self, item):
+        try:
+            return super(Table, self).__getattribute__(item)
+        except Exception as e:
+            if item in self.fields.keys():
+                return self.fields[item]
+
+            raise e

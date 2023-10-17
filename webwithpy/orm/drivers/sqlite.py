@@ -5,14 +5,14 @@ class SqliteDriver:
         # removes the amount of table from the select bc they are already selected
         self.tables_selected = 0
 
-    def update(self, **values):
-        unpacked = self.dialect.unpack(self)
+    def update(self, query, **values):
+        unpacked = self.dialect.unpack(query)
 
         # remove first table from select
         self.tables_selected = 1
 
         # make the select 1 due to speedup performances
-        select = self.select_sql(1, distinct=False, orderby="")
+        select = self.select_sql(1, query=query, distinct=False, orderby="")
         tables, where = self._unpacked_as_sql(unpacked).values()
 
         # The join statement will start with the first table, the order of these tables should not matter
@@ -22,27 +22,27 @@ class SqliteDriver:
             first_table=tables[0], update_vals=update_vals, select=select
         )
 
-    def delete(self):
-        unpacked = self.dialect.unpack(self)
+    def delete(self, query):
+        unpacked = self.dialect.unpack(query)
 
         # remove first table from select
         self.tables_selected = 1
 
         # fields needs to be 1
-        select = self.select_sql(1, distinct=False, orderby="")
+        select = self.select_sql(1, query=query, distinct=False, orderby="")
         tables, where = self._unpacked_as_sql(unpacked).values()
 
         # generate sql based on prev calculated vals
         return self._delete(first_table=tables[0], select=select)
 
-    def select_sql(self, *fields: tuple | int, table_name="", distinct=False, orderby=None):
+    def select_sql(self, *fields: tuple | int, query, distinct=False, orderby=None):
         # if no fields are specified, select all fields
         fields = [str(field) for field in fields] if len(fields) != 0 else "*"
 
         # unpack the query into a dict, note that the query uses a tree structure.
         # So a query can have a query as a child, which can have a query as a child, etc.
         # This unpacks the tree structure into a list of fields and a list of statements
-        unpacked = self.dialect.unpack(self)
+        unpacked = self.dialect.unpack(query)
         if unpacked["fields"][0] is None:
             tables, where = self._unpacked_as_sql(unpacked).values()
             # where not doing a where stmt here!
