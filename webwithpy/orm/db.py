@@ -15,6 +15,7 @@ class DB:
     cursor = None
     driver = None
     tables = None
+    url = None
 
     def __init__(self, db_path: str):
         driver, db_path = db_path.split(':/')
@@ -36,6 +37,7 @@ class DB:
             DB.conn = DB.conn
             DB.cursor = DB.conn.cursor()
             DB.tables = {}
+            DB.url = str(db_path)
 
     def create_tables(self):
         id_field = Field(field_type="INTEGER PRIMARY KEY AUTOINCREMENT")
@@ -54,21 +56,27 @@ class DB:
             table_fields["id"] = id_field
 
             for field_name, field in table_fields.items():
-                field.field_name = field_name
-                field.table_name = table_name
-                field.cursor = DB.cursor
-                field.conn = DB.conn
-                field.driver = DB.driver
+                self._set_field(field, field_name, table_name)
 
             tbl = Table(
-                DB.conn,
-                DB.cursor,
-                table_name,
-                [value for value in table_fields.values()],
+                db=self,
+                conn=DB.conn,
+                cursor=DB.cursor,
+                driver=DB.driver,
+                table_name=table_name,
+                fields=[value for value in table_fields.values()],
             )
 
             DB.tables[table_name] = tbl
             self._create_table(table_name, *[field for field in table_fields.values()])
+
+    def _set_field(self, field, field_name, table_name):
+        field.field_name = field_name
+        field.table_name = table_name
+        field.cursor = DB.cursor
+        field.conn = DB.conn
+        field.driver = DB.driver
+        field.db = self
 
     @classmethod
     def _get_driver(cls, driver: str):

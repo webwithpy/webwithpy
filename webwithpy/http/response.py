@@ -1,6 +1,8 @@
 from typing import Union, Any
 from os import PathLike
-from ..html import Lexer, DefaultParser, DefaultRenderer
+from ..html.lexer import Lexer
+from ..html.parser import DefaultParser
+from ..html.renderer import DefaultRenderer
 
 
 class Response:
@@ -10,14 +12,13 @@ class Response:
         self.headers = {}
         self.contents = []
         self.cache = {}
-        self.cookies = {"session": session}
+        self.cookies = {"session": session, "test": 1}
 
     def add_content(self, content: Any, template: Union[str, PathLike] = ""):
-        # TODO: if template exists add this to html file
-        # TODO: parse dict
         if template != "":
             if not isinstance(content, dict):
                 content = {}
+
             rendered = (
                 self.parse_template(template, **content)
                 if template not in self.cache
@@ -63,10 +64,13 @@ class Response:
         return response
 
     def generate_error(self, code=500):
-        if code == 500:
-            return f"HTTP/{self.http_version} 500 SERVER ERROR\n\n<h1>Unexpected Exception</h1>"
+        self.headers = {}
+        self.contents = []
 
-        return f"HTTP/{self.http_version} 500 SERVER ERROR\n\n<h1>Unexpected Error Code(Not Implemented)</h1>"
+        if code == 500:
+            return f"HTTP/{self.http_version} 500 SERVER ERROR\n\n<h1>SERVER ERROR!</h1>"
+
+        return f"HTTP/{self.http_version} 404 NOT FOUND\n\n<h1>PAGE NOT FOUND!</h1>"
 
     def use_json(self):
         self.content_type = "text/json"

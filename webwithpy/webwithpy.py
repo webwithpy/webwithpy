@@ -17,7 +17,11 @@ def run_server():
     server.setblocking(False)
     server.listen(1)
     loop = asyncio.new_event_loop()
-    loop.run_until_complete(load_clients(server, loop))
+    try:
+        loop.run_until_complete(load_clients(server, loop))
+    except KeyboardInterrupt:
+        # Make sure we don't throw a error when we exit the server
+        print("server closed!")
 
 
 async def load_clients(server: socket.socket, loop: AbstractEventLoop):
@@ -26,11 +30,10 @@ async def load_clients(server: socket.socket, loop: AbstractEventLoop):
             # connect with client
             client_conn, client_addr = await loop.sock_accept(server)
             reader, writer = await asyncio.open_connection(sock=client_conn)
-            client_request: str = (await reader.read(1024)).decode()
+            client_request: str = (await reader.read(2048)).decode()
 
             # add request to app
             App.server_path = SERVER_HOST
-            App.request = Request(client_request)
 
             http_handler = HTTPHandler()
             await loop.create_task(
@@ -38,7 +41,7 @@ async def load_clients(server: socket.socket, loop: AbstractEventLoop):
                     server=loop,
                     client=client_conn,
                     writer=writer,
-                    client_request=client_request,
+                    client_request=client_request
                 )
             )
 

@@ -5,37 +5,36 @@ class SqliteDriver:
         # removes the amount of table from the select bc they are already selected
         self.tables_selected = 0
 
-    def update(self, query, **values):
+    def update(self, table_name, query, **values):
         unpacked = self.dialect.unpack(query)
 
         # remove first table from select
         self.tables_selected = 1
 
         # make the select 1 due to speedup performances
-        select = self.select_sql(1, query=query, distinct=False, orderby="")
         tables, where = self._unpacked_as_sql(unpacked).values()
 
         # The join statement will start with the first table, the order of these tables should not matter
         # So we just select the first table and join the rest of the tables
         update_vals = self._set(values)
-        return dict(
-            first_table=tables[0], update_vals=update_vals, select=select
+
+        return self._update(
+            first_table=tables[0], update_vals=update_vals, select=where
         )
 
-    def delete(self, query):
+    def delete(self, table_name, query):
         unpacked = self.dialect.unpack(query)
 
         # remove first table from select
         self.tables_selected = 1
 
         # fields needs to be 1
-        select = self.select_sql(1, query=query, distinct=False, orderby="")
         tables, where = self._unpacked_as_sql(unpacked).values()
 
         # generate sql based on prev calculated vals
-        return self._delete(first_table=tables[0], select=select)
+        return self._delete(first_table=tables[0], select=where)
 
-    def select_sql(self, *fields: tuple | int, query, distinct=False, orderby=None):
+    def select_sql(self, *fields: tuple | int, query=None, table_name=None, distinct=False, orderby=None):
         # if no fields are specified, select all fields
         fields = [str(field) for field in fields] if len(fields) != 0 else "*"
 
@@ -53,12 +52,14 @@ class SqliteDriver:
         # if no table is found by unpacking the query, use the table_name specified in the select method
         # this is due to the user not using a where query and only db.table.select()
         tables = tables[self.tables_selected : :]
-        if len(tables) == 0:
-            tables.append(self.table_name)
 
         # the join statement will start with the first table, the order of these tables should not matter
         # so we just select the first table and join the rest of the tables
-        join = f"{tables[0]} "
+        if len(tables) != 0:
+            join = f"{tables[0]} "
+        else:
+            join = f"{table_name} {table_name}2 "
+            where = where.replace(table_name, f'{table_name}2')
 
         # however we can only join the tables if there are more then 1 table
         if len(tables) > 1:
@@ -119,17 +120,21 @@ class SqliteDriver:
         sql = ""
         first_done = False
         for key, value in values.items():
+            if key == 'id':
+                continue
+
             if first_done:
                 sql += ", "
             if str(value).isdigit():
                 sql += f"{key} = {value} "
             else:
-                sql += f"{key} = {value} "
+                sql += f"{key} = '{value}'"
+
             first_done = True
         return sql
 
     def _update(self, first_table: str, update_vals: str, select: str):
-        return f"UPDATE {first_table} SET {update_vals} WHERE EXISTS ({select})"
+        return f"UPDATE {first_table} SET {update_vals} {select}"
 
     def insert(self, fields, values):
         return f"INSERT INTO {self.table_name} ({', '.join(fields)}) VALUES ({', '.join([str(val) for val in values.values()])})"

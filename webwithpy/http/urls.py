@@ -1,13 +1,11 @@
-from ..app import App
-
-
 class Url:
-    def http(self, path: str, **kwargs):
+    @classmethod
+    def http(cls, path: str, **kwargs):
         if not path.startswith('/'):
             path = f'/{path}'
         path = f"{path}{'?' if len(kwargs) > 0 else ''}"
-
-        for idx, key, value in enumerate(kwargs):
+    
+        for idx, (key, value) in enumerate(kwargs.items()):
             path += f'{"&" if idx > 0 else ""}{key}={value}'
 
         return path
