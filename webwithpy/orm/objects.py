@@ -4,6 +4,7 @@ from .query import Query
 
 class Field:
     def __init__(self, field_type):
+        self.db = None
         self.conn = None
         self.cursor = None
         self.driver = None
@@ -20,8 +21,9 @@ class Field:
             "date": "DATE",
             "datetime": "DATETIME",
             "time": "TIME",
+            "image": "IMAGE"
         }
-        sql_type = field_type_mapping.get(field_type, None)
+        sql_type = field_type_mapping.get(field_type.lower(), None)
         if sql_type is None:
             return field_type
         return sql_type
@@ -34,10 +36,12 @@ class Field:
 
     def __eq__(self, other):
         return Query(
+            db=self.db,
             conn=self.conn,
             cursor=self.cursor,
             dialect=SqliteDialect,
             operator=SqliteDialect.equals,
+            tbl_name=self.table_name,
             driver=self.driver,
             first=self,
             second=other,
@@ -45,6 +49,7 @@ class Field:
 
     def __ne__(self, other):
         return Query(
+            db=self.db,
             conn=self.conn,
             cursor=self.cursor,
             dialect=SqliteDialect,
@@ -52,10 +57,12 @@ class Field:
             driver=self.driver,
             first=self,
             second=other,
+            tbl_name=self.table_name,
         )
 
     def __lt__(self, other):
         return Query(
+            db=self.db,
             conn=self.conn,
             cursor=self.cursor,
             dialect=SqliteDialect,
@@ -63,10 +70,12 @@ class Field:
             driver=self.driver,
             first=self,
             second=other,
+            tbl_name=self.table_name,
         )
 
     def __le__(self, other):
         return Query(
+            db=self.db,
             conn=self.conn,
             cursor=self.cursor,
             dialect=SqliteDialect,
@@ -74,10 +83,12 @@ class Field:
             driver=self.driver,
             first=self,
             second=other,
+            tbl_name=self.table_name,
         )
 
     def __gt__(self, other):
         return Query(
+            db=self.db,
             conn=self.conn,
             cursor=self.cursor,
             dialect=SqliteDialect,
@@ -85,10 +96,12 @@ class Field:
             driver=self.driver,
             first=self,
             second=other,
+            tbl_name=self.table_name,
         )
 
     def __ge__(self, other):
         return Query(
+            db=self.db,
             conn=self.conn,
             cursor=self.cursor,
             dialect=SqliteDialect,
@@ -96,30 +109,47 @@ class Field:
             driver=self.driver,
             first=self,
             second=other,
+            tbl_name=self.table_name,
         )
 
 
 class Table:
-    def __init__(self, conn=None, db=None, table_name: str = "", fields: list = None):
+    def __init__(self, db=None, conn=None, cursor=None, table_name: str = "", fields: list = None, dialect=None, driver=None):
+        self.db = db
         self.conn = conn
-        self.cursor = db
+        self.cursor = cursor
         self.table_name = table_name
         self.fields: dict = {field.field_name: field for field in fields}
+        self.dialect = dialect
+        self.driver = driver
 
     def insert(self, **values):
         return Query(
+            db=self.db,
             conn=self.conn,
             cursor=self.cursor,
             dialect=SqliteDialect,
+            driver=self.driver,
             tbl_name=self.table_name,
         ).insert(**values, fields=self._get_field_names_sql())
 
     def select(self, *fields, distinct=False, orderby=None):
         return Query(
+            db=self.db,
             cursor=self.cursor,
-            dialect=SqliteDialect,
+            dialect=self.dialect,
+            driver=self.driver,
             tbl_name=self.table_name,
         ).select(*fields, distinct=distinct, orderby=orderby)
+
+    def update(self, **kwargs):
+        return Query(
+            db=self.db,
+            cursor=self.cursor,
+            dialect=self.dialect,
+            driver=self.driver,
+            tbl_name=self.table_name,
+        ).update(**kwargs)
 
     def _get_field_names(self):
         return [field for field in self.fields if field != "id"]

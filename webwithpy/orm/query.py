@@ -2,6 +2,7 @@ class Query:
     def __init__(
         self,
         *,
+        db=None,
         conn=None,
         cursor=None,
         dialect=None,
@@ -11,6 +12,7 @@ class Query:
         second=None,
         tbl_name: str = None,
     ):
+        self.db = db
         self.conn = conn
         self.cursor = cursor
         self.dialect = dialect
@@ -48,24 +50,25 @@ class Query:
         """
 
         # generate the select statement from what we have generated above
-        sql = self.driver.select_sql(*fields, query=self, distinct=distinct, orderby=orderby)
+        sql = self.driver.select_sql(*fields, table_name=self.table_name, query=self, distinct=distinct, orderby=orderby)
 
         return self.cursor.execute(sql).fetchall()
 
     def update(self, **values):
-        sql = self.driver.update(query=self, **values)
+        sql = self.driver.update(table_name=self.table_name, query=self, **values)
 
         self.cursor.execute(sql)
         self.conn.commit()
 
     def delete(self):
-        sql = self.driver.delete(query=self)
+        sql = self.driver.delete(table_name=self.table_name, query=self)
 
         self.cursor.execute(sql)
         self.conn.commit()
 
     def __and__(self, other):
         return Query(
+            db=self.db,
             conn=self.conn,
             cursor=self.cursor,
             dialect=self.dialect,
@@ -77,6 +80,7 @@ class Query:
 
     def __or__(self, other):
         return Query(
+            db=self.db,
             conn=self.conn,
             cursor=self.cursor,
             dialect=self.dialect,
