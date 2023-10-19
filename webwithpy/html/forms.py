@@ -46,11 +46,19 @@ class SQLForm:
                 key=App.request.cookies["session"],
                 algorithms=["HS256"],
             )
-
-            if "view" in jwt_decoded:
+            if "insert" in jwt_decoded:
+                return self.default_styling() + self.insert_form()
+            elif "view" in jwt_decoded:
                 return self.default_styling() + self.view_form(jwt_decoded["idx"])
             elif "edit" in jwt_decoded:
                 return self.default_styling() + self.edit_form(jwt_decoded["idx"])
+            elif "insert_data" in jwt_decoded:
+                db = self.query.db
+
+                # get the id of the field we are going te be selecting
+                table = getattr(db, self.query.__tables__()[0])
+                print(App.request.form_data)
+                table.insert(**App.request.form_data)
             elif "edit_data" in jwt_decoded:
                 db = self.query.db
                 # TODO, make the user give the table, rn we are only gonna grab the first table from the table
@@ -68,8 +76,6 @@ class SQLForm:
                 # get the id of the field we are going te be selecting
                 table = getattr(db, self.query.__tables__()[0])
                 (table.id == fields[jwt_decoded["idx"]]["id"]).delete(**App.request.form_data)
-            elif "insert" in jwt_decoded:
-                return self.default_styling() + self.insert_form()
 
         return self.default_styling() + self.rows_to_table()
 
@@ -84,7 +90,7 @@ class SQLForm:
         table_values = self.table_from_query(values)
 
         return f"""
-                {self.insert_button()}
+                {self.add_button()}
                 <div class="scroll_div">
                     <table>
                         <thead>
@@ -127,16 +133,22 @@ class SQLForm:
         return keys
 
     def insert_form(self):
-        insert_html = "<div class='container'>"
+        jwt_encoded = jwt.encode(
+            {"insert_data": 1},
+            App.request.cookies["session"],
+            algorithm="HS256",
+        )
+
+        insert_html = f"<form action='{url(App.request.path, jwt=jwt_encoded)}' class='container' method='POST'>"
         insert_html += "".join(
             [
-                f"<input placeholder='{field_name}'/>"
+                f"<input name='{field_name}' placeholder='{field_name}'/>"
                 for field_name in DB.tables[self.query.table_name].fields.keys()
                 if field_name != "id"
             ]
         )
-        insert_html += self.back_button()
-        insert_html += "</div>"
+        insert_html += f'<div>{self.back_button()}{self.submit_button()}</div>'
+        insert_html += "</form>"
         return insert_html
 
     def view_form(self, idx):
@@ -175,12 +187,12 @@ class SQLForm:
     @classmethod
     def no_records(cls):
         return f"""
-                {cls.insert_button()}
+                {cls.add_button()}
                 <h3>No Records Found!</h3>
         """
 
     @classmethod
-    def insert_button(cls):
+    def add_button(cls):
         jwt_encoded = jwt.encode(
             {"insert": 1},
             App.request.cookies["session"],
@@ -188,7 +200,7 @@ class SQLForm:
         )
         return f"""
                 <a class ="button btn btn-default btn-secondary insert" href="{url(App.request.path, jwt=jwt_encoded)}">
-                        <span title="Insert">Insert</span></a>
+                        <span title="Add">Add</span></a>
             """
 
     @classmethod

@@ -36,7 +36,8 @@ class Query:
         if fields is None:
             fields = self.cursor.tables[self.table_name].fields.keys()
 
-        sql = self.driver.insert(fields, **values)
+        sql = self.driver.insert(table_name=self.table_name, fields=fields, values=values)
+
         self.cursor.execute(sql)
         self.conn.commit()
 
@@ -55,14 +56,14 @@ class Query:
         return self.cursor.execute(sql).fetchall()
 
     def update(self, **values):
-        sql = self.driver.update(table_name=self.table_name, query=self, **values)
+        sql = self.driver.update(query=self, **values)
 
         self.cursor.execute(sql)
         self.conn.commit()
 
     def delete(self):
-        sql = self.driver.delete(table_name=self.table_name, query=self)
-
+        sql = self.driver.delete(query=self)
+        print(sql)
         self.cursor.execute(sql)
         self.conn.commit()
 
