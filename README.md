@@ -29,7 +29,7 @@ if __name__ == "__main__":
     # all tables that are defined before this statement will be initialized
     db.create_tables()
 
-    # do things bf running the server
+    # run the server when you're done creating views and databases
     run_server()
 ```
 
