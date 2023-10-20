@@ -18,12 +18,12 @@ def run_server():
     server.listen(1)
     loop = asyncio.new_event_loop()
 
-    print(f"server started on f{SERVER_HOST}:{SERVER_PORT}")
+    print(f"server started on {SERVER_HOST}:{SERVER_PORT}")
 
     try:
         loop.run_until_complete(load_clients(server, loop))
     except KeyboardInterrupt:
-        # Make sure we don't throw a error when we exit the server
+        # Make sure we don't throw an error when we exit the server
         print("server closed!")
 
 

@@ -93,8 +93,8 @@ class SQLForm:
         table_values = self.table_from_query(values)
 
         return f"""
-                {self.add_button()}
                 <div class="scroll_div">
+                    {self.add_button()}
                     <table>
                         <thead>
                             <tr>
@@ -319,6 +319,7 @@ class SQLForm:
                 }
                 
                 .scroll_div {
+                    margin: 10 10;
                     overflow-x: auto;
                     max-width: 95%;
                 }
