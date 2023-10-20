@@ -61,6 +61,7 @@ class HTTPHandler:
             # it is possible that a response
             await self.send_response(self.resp.generate_error(500))
             traceback.print_exception(e)
+            return
 
         # only send response after try catch bc if something goes wrong while sending the response it will give
         # a completely different exception
@@ -77,4 +78,7 @@ class HTTPHandler:
 
     @classmethod
     def async_func(cls, func) -> bool:
+        """
+        tests if the function is async or not
+        """
         return asyncio.iscoroutinefunction(func)

@@ -24,21 +24,21 @@ class Query:
 
     def __tables__(self):
         unpacked_query = self.dialect.unpack(self)
-        return self.driver._unpacked_as_sql(unpacked_query)['tables']
+        return self.driver._unpacked_as_sql(unpacked_query)["tables"]
 
-    def insert(self, fields=None, **values) -> None:
+    def insert(self, fields=None, **kwargs) -> None:
         """
         NOTE ALL FIELDS ARE REQUIRED TO USE THE INSERT CURRENTLY
-        :param values: list of values that will be inserted into the table
         :param fields: all name of fields that the table has excluding the id field
+        :param kwargs: list of values that will be inserted into the table
         :return:
         """
         if fields is None:
             fields = self.cursor.tables[self.table_name].fields.keys()
 
-        sql = self.driver.insert(table_name=self.table_name, fields=fields, values=values)
+        sql = self.driver.insert(table_name=self.table_name, fields=fields)
 
-        self.cursor.execute(sql)
+        self.cursor.execute(sql, tuple(kwargs.values()))
         self.conn.commit()
 
     def select(self, *fields: tuple, distinct=False, orderby=None) -> list[dict]:
@@ -51,19 +51,25 @@ class Query:
         """
 
         # generate the select statement from what we have generated above
-        sql = self.driver.select_sql(*fields, table_name=self.table_name, query=self, distinct=distinct, orderby=orderby)
+        sql = self.driver.select_sql(
+            *fields,
+            table_name=self.table_name,
+            query=self,
+            distinct=distinct,
+            orderby=orderby,
+        )
 
         return self.cursor.execute(sql).fetchall()
 
-    def update(self, **values):
-        sql = self.driver.update(query=self, **values)
-
-        self.cursor.execute(sql)
+    def update(self, **kwargs):
+        sql = self.driver.update(query=self, **kwargs)
+        print(sql)
+        self.cursor.execute(sql, tuple(kwargs.values()))
         self.conn.commit()
 
     def delete(self):
         sql = self.driver.delete(query=self)
-        print(sql)
+
         self.cursor.execute(sql)
         self.conn.commit()
 

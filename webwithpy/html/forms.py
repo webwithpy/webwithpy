@@ -10,6 +10,7 @@ class SQLForm:
     def __init__(
         self,
         query: Query,
+        fields: list = None,
         smart=False,
         create=True,
         view=True,
@@ -22,7 +23,6 @@ class SQLForm:
         oncreate=None,
         onupdate=None,
         ondelete=None,
-        dbset=None,
     ):
         self.smart = smart
         self.create = create
@@ -36,8 +36,8 @@ class SQLForm:
         self.oncreate = oncreate
         self.onupdate = onupdate
         self.ondelete = ondelete
-        self.dbset = dbset or {}
         self.query = query
+        self.fields = [str(field).split(".")[1] for field in fields]
 
     def as_html(self):
         if "jwt" in App.request.vars:
@@ -57,7 +57,6 @@ class SQLForm:
 
                 # get the id of the field we are going te be selecting
                 table = getattr(db, self.query.__tables__()[0])
-                print(App.request.form_data)
                 table.insert(**App.request.form_data)
             elif "edit_data" in jwt_decoded:
                 db = self.query.db
@@ -66,7 +65,9 @@ class SQLForm:
 
                 # get the id of the field we are going te be selecting
                 table = getattr(db, self.query.__tables__()[0])
-                (table.id == fields[jwt_decoded["idx"]]["id"]).update(**App.request.form_data)
+                (table.id == fields[jwt_decoded["idx"]]["id"]).update(
+                    **App.request.form_data
+                )
             elif "delete_data" in jwt_decoded:
                 db = self.query.db
 
@@ -75,7 +76,9 @@ class SQLForm:
 
                 # get the id of the field we are going te be selecting
                 table = getattr(db, self.query.__tables__()[0])
-                (table.id == fields[jwt_decoded["idx"]]["id"]).delete(**App.request.form_data)
+                (table.id == fields[jwt_decoded["idx"]]["id"]).delete(
+                    **App.request.form_data
+                )
 
         return self.default_styling() + self.rows_to_table()
 
@@ -108,7 +111,8 @@ class SQLForm:
     def table_from_query(self, selected_values):
         rows = ""
         for idx, row in enumerate(selected_values):
-            blocks = [f"<td>{value}</td>" for value in row.values()]
+            blocks = [f"<td>{row[name]}</td>" for name in self.fields]
+
             rows += f'<tr>{"".join(blocks)}'
 
             if self.view:
@@ -125,7 +129,9 @@ class SQLForm:
     def table_keys(self, tables):
         keys = ""
         for table in tables:
-            for field_name in DB.tables[table].fields.keys():
+            for field_name in (
+                DB.tables[table].fields.keys() if len(self.fields) == 0 else self.fields
+            ):
                 keys += f"<td class='block'>{field_name}</td>"
         keys += "<th class='block'></th>" * (
             int(self.view) + int(self.edit) + int(self.delete) + len(self.links)
@@ -147,7 +153,7 @@ class SQLForm:
                 if field_name != "id"
             ]
         )
-        insert_html += f'<div>{self.back_button()}{self.submit_button()}</div>'
+        insert_html += f"<div>{self.back_button()}{self.submit_button()}</div>"
         insert_html += "</form>"
         return insert_html
 
@@ -198,6 +204,7 @@ class SQLForm:
             App.request.cookies["session"],
             algorithm="HS256",
         )
+
         return f"""
                 <a class ="button btn btn-default btn-secondary insert" href="{url(App.request.path, jwt=jwt_encoded)}">
                         <span title="Add">Add</span></a>
@@ -276,6 +283,7 @@ class SQLForm:
                     font-size: 14px;
                     line-height: 1.42857143;
                     box-sizing: border-box;
+                    margin: 0 auto;
                 }
             
                 table th {
@@ -319,9 +327,9 @@ class SQLForm:
                     grid-template-columns: repeat(1, 2fr);
                     gap: 30px;
                     justify-items: center;
-                    background-color: grey;
                     margin-top: 20px;
                     min-height: 200px;
+                    border-style: solid;
                 }
  
                 .child {

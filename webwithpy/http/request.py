@@ -4,7 +4,7 @@ from urllib.parse import unquote
 class Request:
     def __init__(self, req_header: str):
         req_header_as_dict = self.headers_to_dict(req_header)
-        self.path, self.vars = self.parse_path(req_header_as_dict.get("path", ['/', {}]))
+        self.path, self.vars = self.parse_path(req_header_as_dict.get("path", 'GET / HTTP/1.1'))
         self.form_data = req_header_as_dict.get('form_data', {})
         self.connection_type = req_header_as_dict.get("Connection", "?!")
         self.content_length = req_header_as_dict.get("Content-Length", '/')
@@ -67,6 +67,7 @@ class Request:
         :return: url true path
         """
         path_split = path_header.split(" ")[1].split('?')
+
         if len(path_split) == 1:
             return path_split[0], ''
 
@@ -97,13 +98,13 @@ class Request:
         return cookies_dict
 
     @classmethod
-    def vars_to_dict(cls, kvars: str):
-        if len(kvars) == 0:
+    def vars_to_dict(cls, kwargs: str):
+        if len(kwargs) == 0:
             return {}
 
         # vars dict
         v_d = {}
-        items = kvars.split('&')
+        items = kwargs.split('&')
         for item in items:
             # key, value
             k, v = item.split('=')

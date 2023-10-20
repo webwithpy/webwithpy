@@ -17,6 +17,9 @@ def run_server():
     server.setblocking(False)
     server.listen(1)
     loop = asyncio.new_event_loop()
+
+    print(f"server started on f{SERVER_HOST}:{SERVER_PORT}")
+
     try:
         loop.run_until_complete(load_clients(server, loop))
     except KeyboardInterrupt:
