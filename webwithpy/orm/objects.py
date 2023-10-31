@@ -21,7 +21,7 @@ class Field:
             "date": "DATE",
             "datetime": "DATETIME",
             "time": "TIME",
-            "image": "IMAGE"
+            "image": "IMAGE",
         }
         sql_type = field_type_mapping.get(field_type.lower(), None)
         if sql_type is None:
@@ -114,7 +114,16 @@ class Field:
 
 
 class Table:
-    def __init__(self, db=None, conn=None, cursor=None, table_name: str = "", fields: list = None, dialect=None, driver=None):
+    def __init__(
+        self,
+        db=None,
+        conn=None,
+        cursor=None,
+        table_name: str = "",
+        fields: list = None,
+        dialect=None,
+        driver=None,
+    ):
         self.db = db
         self.conn = conn
         self.cursor = cursor
@@ -131,7 +140,7 @@ class Table:
             dialect=SqliteDialect,
             driver=self.driver,
             tbl_name=self.table_name,
-        ).insert(**values, fields=self._get_field_names_sql())
+        ).insert(**values)
 
     def select(self, *fields, distinct=False, orderby=None):
         return Query(
@@ -150,12 +159,6 @@ class Table:
             driver=self.driver,
             tbl_name=self.table_name,
         ).update(**kwargs)
-
-    def _get_field_names(self):
-        return [field for field in self.fields if field != "id"]
-
-    def _get_field_names_sql(self):
-        return [f"`{field}`" for field in self._get_field_names()]
 
     def __getattribute__(self, item):
         try:

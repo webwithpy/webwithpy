@@ -4,10 +4,7 @@ from pathlib import Path
 
 
 def dict_factory(cursor, row):
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
+    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
 
 
 class DB:
@@ -18,7 +15,7 @@ class DB:
     url = None
 
     def __init__(self, db_path: str):
-        driver, db_path = db_path.split(':/')
+        driver, db_path = db_path.split(":/")
 
         if DB.driver is None:
             DB.driver = self._get_driver(driver)
@@ -27,7 +24,7 @@ class DB:
             db_path = Path(db_path)
 
             # make sure the folders to the db and the db itself exists
-            db_folder_path = Path(str(db_path)[:-len(str(db_path.name))])
+            db_folder_path = Path(str(db_path)[: -len(str(db_path.name))])
             db_folder_path.mkdir(parents=True, exist_ok=True)
             db_path.touch(exist_ok=True)
 
@@ -81,9 +78,10 @@ class DB:
     @classmethod
     def _get_driver(cls, driver: str):
         match driver:
-            case 'sqlite':
+            case "sqlite":
                 from .drivers.sqlite import SqliteDriver
                 from .dialects.sqlite import SqliteDialect
+
                 return SqliteDriver(SqliteDialect)
         raise Exception(f"{driver} is not a valid driver!")
 

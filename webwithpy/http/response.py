@@ -51,7 +51,7 @@ class Response:
         return self.build_response().encode("utf-8")
 
     def build_response(self) -> str:
-        response: str = f"HTTP/{self.http_version}\nContent-Type: {self.content_type}\n"
+        response: str = f"HTTP/{self.http_version} 200 OK\nContent-Type: {self.content_type}\n"
 
         for k, v in self.headers.items():
             response += f"{k}: {v}\n"

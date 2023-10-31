@@ -2,8 +2,17 @@ class SqliteDriver:
     def __init__(self, dialect):
         self.dialect = dialect
 
+        # removes the amount of table from the select bc they are already selected
+        self.tables_selected = 0
+
     def update(self, query, **kwargs):
+        if len(kwargs) == 0:
+            raise Exception("Need to give up args to update!")
+
         unpacked = self.dialect.unpack(query)
+
+        # remove first table from select
+        self.tables_selected = 1
 
         # make the select 1 due to speedup performances
         tables, where = self._unpacked_as_sql(unpacked).values()
@@ -13,11 +22,15 @@ class SqliteDriver:
 
         # The join statement will start with the first table, the order of these tables should not matter
         # So we just select the first table and join the rest of the tables
-        update_vals = ",".join([f"{item_name}=?" for item_name in kwargs.keys()])
+        update_vals = ",".join([f"{key}=?" for key in kwargs.keys()])
+
         return self._update(first_table=tables[0], update_vals=update_vals, where=where)
 
     def delete(self, query):
         unpacked = self.dialect.unpack(query)
+
+        # remove first table from select
+        self.tables_selected = 1
 
         # fields needs to be 1
         tables, where = self._unpacked_as_sql(unpacked).values()
@@ -50,8 +63,12 @@ class SqliteDriver:
         else:
             tables, where = self._unpacked_as_sql(unpacked).values()
 
+        # if no table is found by unpacking the query, use the table_name specified in the select method
+        # this is due to the user not using a where query and only db.table.select()
+        tables = tables[self.tables_selected : :]
+
         # the join statement will start with the first table, the order of these tables should not matter
-        # So we just select the first table and join the rest of the tables
+        # so we just select the first table and join the rest of the tables
         if len(tables) != 0:
             join = f"{tables[0]} "
         else:
@@ -152,8 +169,8 @@ class SqliteDriver:
             first_done = True
         return sql
 
-    def insert(self, table_name, fields):
-        return f"INSERT INTO {table_name} ({','.join(fields)}) VALUES ({','.join(['?' for _ in fields])})"
+    def insert(self, table_name: str, items: dict):
+        return f"INSERT INTO {table_name} ({','.join(items.keys())}) VALUES ({','.join(['?' for _ in items.keys()])})"
 
     def _select(self, fields, tables, where=None, distinct=None, orderby=None):
         return f"SELECT {distinct}{fields} FROM {tables}{where}{orderby}"

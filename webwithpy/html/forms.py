@@ -184,6 +184,7 @@ class SQLForm:
             [
                 f"<div class='child'> <h4 class='field_block'>{key}:</h4><input name='{key}' value='{value}' /> </div>"
                 for key, value in selected_fields[idx].items()
+                if key != "id"
             ]
         )
         edit_html += f"<div>{self.back_button()}{self.submit_button()}<div>"
