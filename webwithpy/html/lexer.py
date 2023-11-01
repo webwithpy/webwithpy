@@ -37,8 +37,9 @@ class Lexer:
             # append left
             tokens.append(Token(data=line[0:l_bracket], method=Methods.HTML))
             # append middle
-            line = self.__filter_pyht(line=line[l_bracket + 2: r_bracket])
-            tokens.append(self.get_token_by_line(line))
+            middle_line = self.__filter_pyht(line=line[l_bracket + 2: r_bracket])
+            tokens.append(self.get_token_by_line(middle_line))
+            print(line)
             # append right side of code
             tokens.append(
                 Token(data=line[r_bracket + 2: len(line)], method=Methods.HTML)
@@ -48,8 +49,6 @@ class Lexer:
                 using_bracket_finder = False
             else:
                 idx += 1
-
-
 
         tokens.append(Token(data="EOF", method=Methods.EOF))
         return self.filter_tokens(tokens)

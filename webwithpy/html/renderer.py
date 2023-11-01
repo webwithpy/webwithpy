@@ -3,7 +3,6 @@ from .lexer import Lexer
 from .parser import DefaultParser
 from typing import List
 
-
 class RenderBlock:
     def __init__(self, code: str):
         self.code = code
@@ -49,6 +48,8 @@ class DefaultRenderer:
                     else:
                         cls.code += f'{cls.spacing}html += str({stmt.code})\n'
                 case "python":
+                    if 'else' in stmt.code or 'elif' in stmt.code:
+                        cls.spacing = cls.spacing[:-4]
                     stmt: Python
                     cls.code += f'{cls.spacing}{stmt.code}\n'
                     if ':' in stmt.code:
@@ -69,7 +70,6 @@ class DefaultRenderer:
         code = cls.generate_pre_code(program=program)
         kwargs['html'] = ''
         kwargs['RenderBlock'] = RenderBlock
-        print(kwargs)
         exec(code, {}, kwargs)
 
         return kwargs['html']
@@ -78,6 +78,7 @@ class DefaultRenderer:
     def render_pre(cls, code, **kwargs):
         kwargs['html'] = ''
         kwargs['RenderBlock'] = RenderBlock
+        print(code)
         exec(code, {}, kwargs)
 
         return kwargs['html']

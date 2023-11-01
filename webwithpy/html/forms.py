@@ -8,21 +8,21 @@ import jwt
 # TODO: add jwt
 class SQLForm:
     def __init__(
-        self,
-        query: Query,
-        fields: list = None,
-        smart=False,
-        create=True,
-        view=True,
-        edit=True,
-        delete=True,
-        delete_popup=True,
-        max_row_length=20,
-        slider=True,
-        links: list = None,
-        oncreate=None,
-        onupdate=None,
-        ondelete=None,
+            self,
+            query: Query,
+            fields: list = None,
+            smart=False,
+            create=True,
+            view=True,
+            edit=True,
+            delete=True,
+            delete_popup=True,
+            max_row_length=20,
+            slider=True,
+            links: list = None,
+            oncreate=None,
+            onupdate=None,
+            ondelete=None,
     ):
         self.smart = smart
         self.create = create
@@ -130,11 +130,11 @@ class SQLForm:
         keys = ""
         for table in tables:
             for field_name in (
-                DB.tables[table].fields.keys() if len(self.fields) == 0 else self.fields
+                    DB.tables[table].fields.keys() if len(self.fields) == 0 else self.fields
             ):
                 keys += f"<td class='block'>{field_name}</td>"
         keys += "<th class='block'></th>" * (
-            int(self.view) + int(self.edit) + int(self.delete) + len(self.links)
+                int(self.view) + int(self.edit) + int(self.delete) + len(self.links)
         )
         return keys
 
@@ -274,7 +274,7 @@ class SQLForm:
                     border-collapse: collapse;
                     margin-top: 7px;
                 }
-            
+
                 table td {
                     padding: 2px 5px;
                     min-width: 67px;
@@ -286,39 +286,39 @@ class SQLForm:
                     box-sizing: border-box;
                     margin: 0 auto;
                 }
-            
+
                 table th {
                     color: #29abe0;
                     padding: 10px 5px;
                     background-color: #EAEAEA;
                     box-sizing: border-box;
                 }
-            
+
                 tbody tr:nth-child(odd) {
                     background-color: #F9F9F9;
                 }
                 tbody tr:nth-child(even) {
                     background-color: #ffffff;
                 }
-            
+
                 tbody tr:hover {
                     background-color: #F2F2F2;
                 }
-            
+
                 .insert {
                     margin-bottom: 10px;
                 }
-            
+
                 .btn-default {
                     color: #ffffff;
                     background-color: #3e3f3a;
                     border-color: transparent;
                 }
-                
+
                 .block {
                     background-color: #EBEBEB;
                 }
-                
+
                 .scroll_div {
                     margin: 10 10;
                     overflow-x: auto;
@@ -333,14 +333,14 @@ class SQLForm:
                     min-height: 200px;
                     border-style: solid;
                 }
- 
+
                 .child {
                     display: grid;
                     grid-template-columns: auto 1fr;
                     gap: 20px;
                     align-items: center;
                 }
-                
+
                 .field_block {
                     min-width: 200px;
                 }
