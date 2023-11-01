@@ -1,0 +1,15 @@
+site_name: Webwithpy
+site_description: Welcome to WebWithPy's documentation
+site_url: https://www.webwithpy.nl/
+nav:
+  - Home: index.md
+  - Introduction: introduction.md
+  - Database orm: database_orm.md
+theme:
+  name: mkdocs
+  locale: en
+  analytics: { gtag: 'G-274394082' }
+  highlightjs: true
+
+extra_css:
+  - css/table.css

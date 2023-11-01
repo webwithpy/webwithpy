@@ -55,6 +55,8 @@ class DB:
             for field_name, field in table_fields.items():
                 self._set_field(field, field_name, table_name)
 
+            table.db = self
+
             tbl = Table(
                 db=self,
                 conn=DB.conn,

@@ -9,15 +9,17 @@ SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 8000
 
 
-def run_server():
+def run_server(server_host="127.0.0.1", server_port=8000):
+    global SERVER_HOST, SERVER_PORT
+    SERVER_HOST, SERVER_PORT = (server_host, server_port)
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind((SERVER_HOST, SERVER_PORT))
+    server.bind((server_host, server_port))
     server.setblocking(False)
     server.listen(1)
     loop = asyncio.new_event_loop()
 
-    print(f"server started on {SERVER_HOST}:{SERVER_PORT}")
+    print(f"server started on {server_host}:{server_port}")
 
     try:
         loop.run_until_complete(load_clients(server, loop))
