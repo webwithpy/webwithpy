@@ -59,7 +59,6 @@ Under here is a table of all the table field types
 | datetime | Field("datetime") |
 | time     | Field("time")     |
 | image    | Field("image")    |
-<br>
 
 ## creating queries
 In sqp it's pretty simple to create a query, this an example query on the User table we've created above.
@@ -68,6 +67,7 @@ In sqp it's pretty simple to create a query, this an example query on the User t
 from webwithpy.orm import DB, Table, Field
 
 class User(Table):
+    table_name = "user"
     first_name = Field("string")
     last_name = Field("string")
 
@@ -79,9 +79,10 @@ The query we've made below will check for every row in User if User.first_name =
 under here is every possible query you can make in webwithpy(list of all the operators)
 
 ```python
-from webwithpy.orm import Table, Field
+from webwithpy.orm import DB, Table, Field
 
 class User(Table):
+    table_name = "user"
     first_name = Field("string")
     last_name = Field("string")
     
@@ -93,14 +94,30 @@ query = (db.user.id <= 10)
 query = (db.user.id >= 0)
 ```
 
-### adding queries together
+#### adding queries together
 to make multiple queries in 1 user the '&' operator.
 
 ```python
 query = ((db.user.id >= 0) & (db.user.id <= 10))
 ```
 
-### selecting fields
+## inserting fields
+There is currently only 1 way to insert values into the table, To do this you will need to do `db.table.insert()`.
+when using this you will need to add parameters based on the tables fields ea: `db.table.insert(first_name='John')`.
+Under here is a example of inserting fields.
+```python
+from webwithpy.orm import DB, Table, Field
+
+class User(Table):
+    table_name = "user"
+    first_name = Field("string")
+    last_name = Field("string")
+    
+db = DB("sqlite:/storage.db")
+db.user.insert(first_name=)
+```
+
+## selecting fields
 There are multiple ways to select fields from a table, the easiest way is to use `Table.select()`.<br>
 This will select all the fields from the table, however if you only want to select specific fields from the table
 you will need to make queries. This is a example of how to select a field based on any query:
@@ -109,4 +126,22 @@ you will need to make queries. This is a example of how to select a field based 
 selected_fields = (db.user.id < 10).select()
 ```
 
-This will select all fields from the database that have an id that has a value that is less than 10
+This will select all fields from the database that have an id that has a value that is less than 10!
+
+## updating fields
+The only way to update fields is to create a query and type the variables you want to change, for example:
+
+```python
+(db.user.id < 10).update(first_name="user")
+```
+
+Note that the only thing that isn't recommended to change is the table's id!
+
+## deleting fields
+Removing fields from the table works very similar to updating fields in the table, however you don't need to give up
+the fields you want to change because you are removing them. Below here is a simple example of how to remove fields from
+an table
+
+```python
+(db.user.id < 10).delete()
+```
