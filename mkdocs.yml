@@ -5,6 +5,9 @@ nav:
   - Home: index.md
   - Introduction: introduction.md
   - Database orm: database_orm.md
+  - Templating: templating.md
+  - Routing: routing.md
+
 theme:
   name: mkdocs
   locale: en

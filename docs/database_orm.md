@@ -114,8 +114,9 @@ class User(Table):
     last_name = Field("string")
     
 db = DB("sqlite:/storage.db")
-db.user.insert(first_name=)
+db.user.insert(first_name="John Doe", last_name="doos")
 ```
+You don't need to include all the fields when inserting
 
 ## selecting fields
 There are multiple ways to select fields from a table, the easiest way is to use `Table.select()`.<br>
