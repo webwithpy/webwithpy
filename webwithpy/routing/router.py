@@ -9,11 +9,14 @@ class RouteData:
         self.method = method
         self.html_template = template
 
+    def get_route(self):
+        return self.url
+
     def eq(self, url, method):
         return self.url == url and (self.method.lower() == method.lower() or self.method.lower() == "any")
 
     def __str__(self):
-        return self.url + " " + self.method
+        return f"{self.method.upper()} + {self.url.lower()}"
 
     def __repr__(self):
         return self.__str__()
@@ -28,4 +31,11 @@ class Router:
             if route.eq(url, method):
                 return route
 
+        return None
+
+    @classmethod
+    def get_route(cls, route: str):
+        for Router_route in Router.routes:
+            if Router_route.get_route() == route:
+                return Router_route
         return None

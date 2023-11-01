@@ -1,4 +1,4 @@
-![Webwithpy](documentation/images/wwp.png)
+![Webwithpy](images/wwp.png)
 
 Webwithpy is a free to use fullstack web framework mainly focussed on performance and ease of use.
 The goal of webwithpy is to have an easy-to-use web framework whilst still maintaining high performance.

@@ -69,6 +69,7 @@ class DefaultRenderer:
         code = cls.generate_pre_code(program=program)
         kwargs['html'] = ''
         kwargs['RenderBlock'] = RenderBlock
+        print(kwargs)
         exec(code, {}, kwargs)
 
         return kwargs['html']

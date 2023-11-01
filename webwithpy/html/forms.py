@@ -80,7 +80,7 @@ class SQLForm:
                     **App.request.form_data
                 )
 
-        return self.default_styling() + self.rows_to_table()
+        return f"<head>{self.default_styling()}</head>" + f"<body>{self.rows_to_table()}</body>"
 
     def rows_to_table(self):
         values = self.query.select()

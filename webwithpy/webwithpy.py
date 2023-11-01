@@ -3,7 +3,6 @@ import asyncio
 
 from asyncio.events import AbstractEventLoop
 from .http.handler import HTTPHandler
-from .http.request import Request
 from .app import App
 
 SERVER_HOST = "127.0.0.1"

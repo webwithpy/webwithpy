@@ -56,9 +56,11 @@ class Response:
         for k, v in self.headers.items():
             response += f"{k}: {v}\n"
 
-        response += f"Set-Cookie: {';'.join([f'{k}={v}' for k, v in self.cookies.items()])}"
+        for k, v in self.cookies.items():
+            self.cookies[k] = str(v).replace('\r', '')
 
-        response += "\n"
+        response += f"Set-Cookie: {';'.join([f'{k}={v}' for k, v in self.cookies.items()])}"
+        response += "\n\n"
         response += "\n".join(self.contents)
 
         return response
