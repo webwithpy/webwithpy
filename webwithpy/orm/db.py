@@ -40,6 +40,8 @@ class DB:
         id_field = Field(field_type="INTEGER PRIMARY KEY AUTOINCREMENT")
 
         for table in Table.__subclasses__():
+            cache = table.cache if "cache" in vars(table) else False
+
             table_name = (
                 table.table_name if "table_name" in vars(table) else table.__name__
             )
@@ -53,7 +55,7 @@ class DB:
             table_fields["id"] = id_field
 
             for field_name, field in table_fields.items():
-                self._set_field(field, field_name, table_name)
+                self._set_field(field, field_name, table_name, cache)
 
             table.db = self
 
@@ -64,19 +66,20 @@ class DB:
                 driver=DB.driver,
                 table_name=table_name,
                 fields=[value for value in table_fields.values()],
-                caching=table.cache if "cache" in vars(table) else False
+                caching=cache,
             )
 
             DB.tables[table_name] = tbl
             self._create_table(table_name, *[field for field in table_fields.values()])
 
-    def _set_field(self, field, field_name, table_name):
+    def _set_field(self, field, field_name, table_name, cache):
         field.field_name = field_name
         field.table_name = table_name
         field.cursor = DB.cursor
         field.conn = DB.conn
         field.driver = DB.driver
         field.db = self
+        field.cache = cache
 
     @classmethod
     def _get_driver(cls, driver: str):

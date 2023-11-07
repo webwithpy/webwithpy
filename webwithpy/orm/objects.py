@@ -11,6 +11,7 @@ class Field:
         self.table_name = ""
         self.field_name = ""
         self.field_type = self._translate_type(field_type)
+        self.cache = False
 
     def _translate_type(self, field_type):
         field_type_mapping = {
@@ -45,6 +46,7 @@ class Field:
             driver=self.driver,
             first=self,
             second=other,
+            using_cache=self.cache,
         )
 
     def __ne__(self, other):
@@ -58,6 +60,7 @@ class Field:
             first=self,
             second=other,
             tbl_name=self.table_name,
+            using_cache=self.cache,
         )
 
     def __lt__(self, other):
@@ -71,6 +74,7 @@ class Field:
             first=self,
             second=other,
             tbl_name=self.table_name,
+            using_cache=self.cache,
         )
 
     def __le__(self, other):
@@ -84,6 +88,7 @@ class Field:
             first=self,
             second=other,
             tbl_name=self.table_name,
+            using_cache=self.cache,
         )
 
     def __gt__(self, other):
@@ -97,6 +102,7 @@ class Field:
             first=self,
             second=other,
             tbl_name=self.table_name,
+            using_cache=self.cache,
         )
 
     def __ge__(self, other):
@@ -110,6 +116,7 @@ class Field:
             first=self,
             second=other,
             tbl_name=self.table_name,
+            using_cache=self.cache,
         )
 
 
@@ -142,7 +149,7 @@ class Table:
             dialect=SqliteDialect,
             driver=self.driver,
             tbl_name=self.table_name,
-            using_cache=self.caching
+            using_cache=self.caching,
         ).insert(**values)
 
     def select(self, *fields, distinct=False, orderby=None):
@@ -152,6 +159,7 @@ class Table:
             dialect=self.dialect,
             driver=self.driver,
             tbl_name=self.table_name,
+            using_cache=self.caching,
         ).select(*fields, distinct=distinct, orderby=orderby)
 
     def update(self, **kwargs):
@@ -161,6 +169,7 @@ class Table:
             dialect=self.dialect,
             driver=self.driver,
             tbl_name=self.table_name,
+            using_cache=self.caching,
         ).update(**kwargs)
 
     def __getattribute__(self, item):

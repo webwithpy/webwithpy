@@ -1,4 +1,4 @@
-from .tools.cacher import Cacher
+from .tools import cacher
 
 
 class Query:
@@ -50,7 +50,6 @@ class Query:
         :param orderby: orders the result by the specified field
         :return:
         """
-
         # generate the select statement from what we have generated above
         sql = self.driver.select_sql(
             *fields,
@@ -60,13 +59,18 @@ class Query:
             orderby=orderby,
         )
 
+        # print(self.using_cache)d
         # caching logic
         if self.using_cache:
-            if Cacher.select_in_cache(table_name=self.table_name, select_stmt=sql):
-                return Cacher.get_cache_by_select(table_name=self.table_name, select_stmt=sql)
+            if cacher.select_in_cache(table_name=self.table_name, select_stmt=sql):
+                return cacher.get_cache_by_select(
+                    table_name=self.table_name, select_stmt=sql
+                )
             else:
                 value = self.cursor.execute(sql).fetchall()
-                Cacher.insert_cache(table_name=self.table_name, select_stmt=sql, value = value)
+                cacher.insert_cache(
+                    table_name=self.table_name, select_stmt=sql, value=value
+                )
                 return value
 
         # execute the sql
@@ -74,7 +78,7 @@ class Query:
 
     def update(self, **kwargs):
         if self.using_cache:
-            Cacher.remove_table_cache(self.table_name)
+            cacher.remove_table_cache(self.table_name)
 
         sql = self.driver.update(query=self, **kwargs)
 
@@ -83,7 +87,7 @@ class Query:
 
     def delete(self):
         if self.using_cache:
-            Cacher.remove_table_cache(self.table_name)
+            cacher.remove_table_cache(self.table_name)
 
         sql = self.driver.delete(query=self)
 
@@ -100,6 +104,7 @@ class Query:
             driver=self.driver,
             first=self,
             second=other,
+            using_cache=self.using_cache,
         )
 
     def __or__(self, other):
@@ -112,4 +117,5 @@ class Query:
             driver=self.driver,
             first=self,
             second=other,
+            using_cache=self.using_cache,
         )
