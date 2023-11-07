@@ -1,3 +1,6 @@
+from .tools.cacher import Cacher
+
+
 class Query:
     def __init__(
         self,
@@ -11,6 +14,7 @@ class Query:
         first=None,
         second=None,
         tbl_name: str = None,
+        using_cache: bool = False
     ):
         self.db = db
         self.conn = conn
@@ -21,6 +25,7 @@ class Query:
         self.first = first
         self.second = second
         self.table_name = tbl_name
+        self.using_cache = using_cache
 
     def __tables__(self):
         unpacked_query = self.dialect.unpack(self)
@@ -55,6 +60,16 @@ class Query:
             orderby=orderby,
         )
 
+        # caching logic
+        if self.using_cache:
+            if Cacher.select_in_cache(table_name=self.table_name, select_stmt=sql):
+                return Cacher.get_cache_by_select(table_name=self.table_name, select_stmt=sql)
+            else:
+                value = self.cursor.execute(sql).fetchall()
+                Cacher.insert_cache(table_name=self.table_name, select_stmt=sql, value = value)
+                return value
+
+        # execute the sql
         return self.cursor.execute(sql).fetchall()
 
     def update(self, **kwargs):

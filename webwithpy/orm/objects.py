@@ -118,6 +118,7 @@ class Table:
         self,
         db=None,
         conn=None,
+        caching=False,
         cursor=None,
         table_name: str = "",
         fields: list = None,
@@ -131,15 +132,17 @@ class Table:
         self.fields: dict = {field.field_name: field for field in fields}
         self.dialect = dialect
         self.driver = driver
+        self.caching = caching
 
     def insert(self, **values):
-        return Query(
+        Query(
             db=self.db,
             conn=self.conn,
             cursor=self.cursor,
             dialect=SqliteDialect,
             driver=self.driver,
             tbl_name=self.table_name,
+            using_cache=self.caching
         ).insert(**values)
 
     def select(self, *fields, distinct=False, orderby=None):

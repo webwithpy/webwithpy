@@ -64,6 +64,7 @@ class DB:
                 driver=DB.driver,
                 table_name=table_name,
                 fields=[value for value in table_fields.values()],
+                caching=table.cache if "cache" in vars(table) else False
             )
 
             DB.tables[table_name] = tbl

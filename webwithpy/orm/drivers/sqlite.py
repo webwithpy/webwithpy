@@ -58,7 +58,7 @@ class SqliteDriver:
         unpacked = self.dialect.unpack(query)
         if unpacked["fields"][0] is None:
             tables, where = self._unpacked_as_sql(unpacked).values()
-            # where not doing a where stmt here!
+            # were not doing a where stmt here!
             where = ""
         else:
             tables, where = self._unpacked_as_sql(unpacked).values()
@@ -168,6 +168,17 @@ class SqliteDriver:
 
             first_done = True
         return sql
+
+    def to_cache_keys(self, query):
+        unpacked = self.dialect.unpack(query)
+        if unpacked["fields"][0] is None:
+            tables, where = self._unpacked_as_sql(unpacked).values()
+            # were not doing a where stmt here!
+            where = ""
+        else:
+            tables, where = self._unpacked_as_sql(unpacked).values()
+
+        return "".join(tables) + where
 
     def insert(self, table_name: str, items: dict):
         return f"INSERT INTO {table_name} ({','.join(items.keys())}) VALUES ({','.join(['?' for _ in items.keys()])})"
