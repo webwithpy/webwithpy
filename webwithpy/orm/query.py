@@ -73,12 +73,18 @@ class Query:
         return self.cursor.execute(sql).fetchall()
 
     def update(self, **kwargs):
+        if self.using_cache:
+            Cacher.remove_table_cache(self.table_name)
+
         sql = self.driver.update(query=self, **kwargs)
 
         self.cursor.execute(sql, tuple(kwargs.values()))
         self.conn.commit()
 
     def delete(self):
+        if self.using_cache:
+            Cacher.remove_table_cache(self.table_name)
+
         sql = self.driver.delete(query=self)
 
         self.cursor.execute(sql)

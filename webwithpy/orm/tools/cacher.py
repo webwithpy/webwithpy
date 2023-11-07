@@ -17,3 +17,7 @@ class Cacher:
         return Cacher._cache.get(table_name, None) is not None and (
             Cacher._cache.get(table_name).get(select_stmt, None) is not None
         )
+
+    @classmethod
+    def remove_table_cache(cls, table_name: str):
+        Cacher._cache.pop(table_name)
