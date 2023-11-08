@@ -78,7 +78,7 @@ class DefaultRenderer:
     def render_pre(cls, code, **kwargs):
         kwargs['html'] = ''
         kwargs['RenderBlock'] = RenderBlock
-        print(code)
+
         exec(code, {}, kwargs)
 
         return kwargs['html']

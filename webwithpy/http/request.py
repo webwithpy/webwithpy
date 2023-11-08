@@ -69,7 +69,7 @@ class Request:
         path_split = path_header.split(" ")[1].split('?')
 
         if len(path_split) == 1:
-            return path_split[0], ''
+            return path_split[0], {}
 
         return [path_split[0], cls.vars_to_dict(path_split[1])]
 
@@ -93,12 +93,13 @@ class Request:
 
         for cookie in cookies_as_str.split(';'):
             k, v = cookie.split('=')
-            cookies_dict[k] = v
+            cookies_dict[k] = v.replace('\r', '')
 
         return cookies_dict
 
     @classmethod
     def vars_to_dict(cls, kwargs: str):
+        print(f"kwargs: {kwargs}, len_kwargs: {len(kwargs)}")
         if len(kwargs) == 0:
             return {}
 

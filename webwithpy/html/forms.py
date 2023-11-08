@@ -40,12 +40,16 @@ class SQLForm:
         self.fields = [str(field).split(".")[1] for field in fields]
 
     def as_html(self):
+        # print(f'{App.request.vars["jwt"]} {App.response.cookies["session"]}')
+
         if "jwt" in App.request.vars:
+            print(f"decoding... using {App.response.cookies['session']}\n jwt: {App.request.vars['jwt']}")
             jwt_decoded = jwt.decode(
                 App.request.vars["jwt"],
-                key=App.request.cookies["session"],
+                key=App.response.cookies["session"],
                 algorithms=["HS256"],
             )
+
             if "insert" in jwt_decoded:
                 return self.default_styling() + self.insert_form()
             elif "view" in jwt_decoded:
@@ -141,7 +145,7 @@ class SQLForm:
     def insert_form(self):
         jwt_encoded = jwt.encode(
             {"insert_data": 1},
-            App.request.cookies["session"],
+            App.response.cookies["session"],
             algorithm="HS256",
         )
 
@@ -175,7 +179,7 @@ class SQLForm:
 
         jwt_encoded = jwt.encode(
             {"edit_data": 1, "idx": idx},
-            App.request.cookies["session"],
+            App.response.cookies["session"],
             algorithm="HS256",
         )
 
@@ -202,7 +206,7 @@ class SQLForm:
     def add_button(cls):
         jwt_encoded = jwt.encode(
             {"insert": 1},
-            App.request.cookies["session"],
+            App.response.cookies["session"],
             algorithm="HS256",
         )
 
@@ -228,9 +232,11 @@ class SQLForm:
     def view_button(cls, button_idx):
         jwt_encoded = jwt.encode(
             {"view": 1, "idx": button_idx},
-            App.request.cookies["session"],
+            App.response.cookies["session"],
             algorithm="HS256",
         )
+        print(f"decoding encode... using key: {App.response.cookies['session']}")
+        print(jwt.decode(jwt_encoded, App.response.cookies["session"], algorithms=["HS256"],))
         return f"""
             <a class ="button btn btn-default btn-secondary insert" href="{url(App.request.path, jwt=jwt_encoded)}">
                         <span title="View">View</span></a>
@@ -240,7 +246,7 @@ class SQLForm:
     def edit_button(cls, button_idx):
         jwt_encoded = jwt.encode(
             {"edit": 1, "idx": button_idx},
-            App.request.cookies["session"],
+            App.response.cookies["session"],
             algorithm="HS256",
         )
 
@@ -253,7 +259,7 @@ class SQLForm:
     def delete_button(cls, button_idx):
         jwt_encoded = jwt.encode(
             {"delete_data": 1, "idx": button_idx},
-            App.request.cookies["session"],
+            App.response.cookies["session"],
             algorithm="HS256",
         )
 

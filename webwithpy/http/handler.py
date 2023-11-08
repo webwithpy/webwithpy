@@ -33,30 +33,37 @@ class HTTPHandler:
         self.writer = writer
         App.request = Request(client_request)
 
+        session = (
+            self.generate_session()
+            if "session" not in App.request.cookies
+            else App.request.cookies["session"]
+        )
+
         # make a response object with a new session or the current session given by the request
-        self.resp: Response = Response(App.request.cookies.get('session', f"{uuid.uuid4()}{uuid.uuid4()}"))
-        
-        # Make sure if the session does not exist the session is set in App.request.cookies
-        if "session" not in App.request.cookies:
-            App.request.cookies["session"] = self.resp.cookies["session"]
+        self.resp: Response = Response(session)
+        App.response = self.resp
 
         #  try to find the function by the request path
         try:
             routed_data = Router.get_data_by_route(App.request.path, App.request.method)
 
             if routed_data is None:
-                print(f"User tried to go to this path: {App.request.path} with this method: {App.request.method},"
-                      f" However it was not found or it could not be accessed with this request method!")
+                print(
+                    f"User tried to go to this path: {App.request.path} with this method: {App.request.method},"
+                    f" However it was not found or it could not be accessed with this request method!"
+                )
 
                 # send a 404 not found back because the path->method->function was not found!
                 await self.send_response(self.resp.generate_error(404))
                 return
 
             # run the function and send the data back to the user
-            func_out = await routed_data.func() if self.async_func(routed_data.func) else routed_data.func()
-            self.resp.add_content(
-                func_out, routed_data.html_template
+            func_out = (
+                await routed_data.func()
+                if self.async_func(routed_data.func)
+                else routed_data.func()
             )
+            self.resp.add_content(func_out, routed_data.html_template)
         except Exception as e:
             # it is possible that a response
             await self.send_response(self.resp.generate_error(500))
@@ -82,3 +89,8 @@ class HTTPHandler:
         tests if the function is async or not
         """
         return asyncio.iscoroutinefunction(func)
+
+    @classmethod
+    def generate_session(cls):
+        key = f"{uuid.uuid4()}-{uuid.uuid4()}"
+        return key.replace('\r', '')

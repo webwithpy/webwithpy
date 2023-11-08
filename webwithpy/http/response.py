@@ -12,7 +12,7 @@ class Response:
         self.headers = {}
         self.contents = []
         self.cache = {}
-        self.cookies = {"session": session, "test": 1}
+        self.cookies = {"session": session}
 
     def add_content(self, content: Any, template: Union[str, PathLike] = ""):
         if template != "":
