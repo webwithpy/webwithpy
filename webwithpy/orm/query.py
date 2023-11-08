@@ -14,7 +14,7 @@ class Query:
         first=None,
         second=None,
         tbl_name: str = None,
-        using_cache: bool = False
+        using_cache: bool = False,
     ):
         self.db = db
         self.conn = conn
@@ -50,7 +50,7 @@ class Query:
         :param orderby: orders the result by the specified field
         :return:
         """
-        # generate the select statement from what we have generated above
+        # generate the select statement
         sql = self.driver.select_sql(
             *fields,
             table_name=self.table_name,
@@ -61,10 +61,10 @@ class Query:
 
         # caching logic
         if self.using_cache:
-            if cacher.select_in_cache(table_name=self.table_name, select_stmt=sql):
-                return cacher.get_cache_by_select(
-                    table_name=self.table_name, select_stmt=sql
-                )
+            if cached := cacher.get_cache_by_select(
+                table_name=self.table_name, select_stmt=sql
+            ):
+                return cached
             else:
                 value = self.cursor.execute(sql).fetchall()
                 cacher.insert_cache(

@@ -22,3 +22,7 @@ def random_bytes():
 def random_integer():
     return Random().randint(0, 1000)
 ```
+
+As you can see above, if you go now to the set port and go to '/', '/random_bytes' or '/random_int' it will run the 
+code by the path.
+

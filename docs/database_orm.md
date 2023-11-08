@@ -46,8 +46,16 @@ db.create_tables()
 
 the function create tables will create tables based on classes that have subclassed the sqp Table
 
-### field types
-Under here is a table of all the table field types
+### smart caching
+Sqp will create and remove items from the cache based on previous queries made. Caching is incredibly useful to use
+whenever you have a huge select query, or you need to do a query alot of times. The caching will be removed for a 
+specific table whenever you update or delete items from the table. In the future this is aimed to be improved where only
+some queries will be uncached when a update or delete stmt is done
+
+### fields
+In sqp fields are a pythonic representation of what the fields look like in a database.
+
+#### field types
 
 | type     | py orm            |
 |----------|-------------------|
