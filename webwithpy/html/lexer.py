@@ -53,7 +53,9 @@ class Lexer:
         tokens.append(Token(data="EOF", method=Methods.EOF))
         return self.filter_tokens(tokens)
 
-    def get_token_by_line(self, line):
+    @classmethod
+    def get_token_by_line(cls, line):
+        line = line.lower()
         if line.startswith("include"):
             # NOTE: include will do the same as extends for the time being, however it might find use in the
             # future
@@ -83,7 +85,13 @@ class Lexer:
         else:
             return Token(data=line, method=Methods.PYTHON)
 
-    def filter_tokens(self, tokens: List[Token]) -> List[Token]:
+    @classmethod
+    def filter_tokens(cls, tokens: List[Token]) -> List[Token]:
+        """
+        filters all empty python and html tokens
+        :param tokens: list of parsed tokens
+        :return: filtered tokens
+        """
         index = 0
         while index < len(tokens):
             token = tokens[index]
@@ -100,7 +108,8 @@ class Lexer:
 
         return tokens
 
-    def __filter_pyht(self, line: str):
+    @classmethod
+    def __filter_pyht(cls, line: str):
         """
         filters all unnecessary data from line
         :param line: given in html file
