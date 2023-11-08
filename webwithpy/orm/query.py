@@ -59,7 +59,6 @@ class Query:
             orderby=orderby,
         )
 
-        # print(self.using_cache)d
         # caching logic
         if self.using_cache:
             if cacher.select_in_cache(table_name=self.table_name, select_stmt=sql):

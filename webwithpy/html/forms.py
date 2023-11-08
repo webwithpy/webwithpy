@@ -8,21 +8,21 @@ import jwt
 # TODO: add jwt
 class SQLForm:
     def __init__(
-            self,
-            query: Query,
-            fields: list = None,
-            smart=False,
-            create=True,
-            view=True,
-            edit=True,
-            delete=True,
-            delete_popup=True,
-            max_row_length=20,
-            slider=True,
-            links: list = None,
-            oncreate=None,
-            onupdate=None,
-            ondelete=None,
+        self,
+        query: Query,
+        fields: list = None,
+        smart=False,
+        create=True,
+        view=True,
+        edit=True,
+        delete=True,
+        delete_popup=True,
+        max_row_length=20,
+        slider=True,
+        links: list = None,
+        oncreate=None,
+        onupdate=None,
+        ondelete=None,
     ):
         self.smart = smart
         self.create = create
@@ -40,10 +40,7 @@ class SQLForm:
         self.fields = [str(field).split(".")[1] for field in fields]
 
     def as_html(self):
-        # print(f'{App.request.vars["jwt"]} {App.response.cookies["session"]}')
-
         if "jwt" in App.request.vars:
-            print(f"decoding... using {App.response.cookies['session']}\n jwt: {App.request.vars['jwt']}")
             jwt_decoded = jwt.decode(
                 App.request.vars["jwt"],
                 key=App.response.cookies["session"],
@@ -84,7 +81,10 @@ class SQLForm:
                     **App.request.form_data
                 )
 
-        return f"<head>{self.default_styling()}</head>" + f"<body>{self.rows_to_table()}</body>"
+        return (
+            f"<head>{self.default_styling()}</head>"
+            + f"<body>{self.rows_to_table()}</body>"
+        )
 
     def rows_to_table(self):
         values = self.query.select()
@@ -134,11 +134,11 @@ class SQLForm:
         keys = ""
         for table in tables:
             for field_name in (
-                    DB.tables[table].fields.keys() if len(self.fields) == 0 else self.fields
+                DB.tables[table].fields.keys() if len(self.fields) == 0 else self.fields
             ):
                 keys += f"<td class='block'>{field_name}</td>"
         keys += "<th class='block'></th>" * (
-                int(self.view) + int(self.edit) + int(self.delete) + len(self.links)
+            int(self.view) + int(self.edit) + int(self.delete) + len(self.links)
         )
         return keys
 
@@ -152,7 +152,7 @@ class SQLForm:
         insert_html = f"<form action='{url(App.request.path, jwt=jwt_encoded)}' class='container' method='POST'>"
         insert_html += "".join(
             [
-                f"<input name='{field_name}' placeholder='{field_name}'/>"
+                f"<input name='{field_name}' placeholder='{field_name}' type='{self.get_field_type(self.query.table_name, field_name)}'/>"
                 for field_name in DB.tables[self.query.table_name].fields.keys()
                 if field_name != "id"
             ]
@@ -186,7 +186,8 @@ class SQLForm:
         edit_html = f"<form action='{url(App.request.path, jwt=jwt_encoded)}' class='container' method='POST'>"
         edit_html += "".join(
             [
-                f"<div class='child'> <h4 class='field_block'>{key}:</h4><input name='{key}' value='{value}' /> </div>"
+                f"<div class='child'> <h4 class='field_block'>{key}:</h4><input name='{key}' value='{value}'"
+                f" type='{self.get_field_type(self.query.table_name, key)}' /> </div>"
                 for key, value in selected_fields[idx].items()
                 if key != "id"
             ]
@@ -194,6 +195,16 @@ class SQLForm:
         edit_html += f"<div>{self.back_button()}{self.submit_button()}<div>"
         edit_html += "</form>"
         return edit_html
+
+    @classmethod
+    def get_field_type(cls, table_name, field_name):
+        field_type = DB.tables[table_name].fields[field_name].field_type
+
+        translation_table = {
+            'IMAGE': 'file'
+        }
+
+        return translation_table.get(field_type, 'text')
 
     @classmethod
     def no_records(cls):
@@ -235,8 +246,7 @@ class SQLForm:
             App.response.cookies["session"],
             algorithm="HS256",
         )
-        print(f"decoding encode... using key: {App.response.cookies['session']}")
-        print(jwt.decode(jwt_encoded, App.response.cookies["session"], algorithms=["HS256"],))
+
         return f"""
             <a class ="button btn btn-default btn-secondary insert" href="{url(App.request.path, jwt=jwt_encoded)}">
                         <span title="View">View</span></a>

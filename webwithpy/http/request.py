@@ -99,7 +99,6 @@ class Request:
 
     @classmethod
     def vars_to_dict(cls, kwargs: str):
-        print(f"kwargs: {kwargs}, len_kwargs: {len(kwargs)}")
         if len(kwargs) == 0:
             return {}
 
