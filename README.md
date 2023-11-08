@@ -34,4 +34,5 @@ if __name__ == "__main__":
 ```
 
 ## Documentation
-The documentation is coming very soon!!
+The documentation is not fully done yet however it is some:
+[webwithpy.readthedocs.io](webwithpy)
