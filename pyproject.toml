@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "webwithpy"
-version = "0.4"
+version = "0.5"
 description = ""
 authors = ["Sven Keimpema"]
 readme = "README.md"
@@ -10,6 +10,7 @@ packages = [{include = "webwithpy/**/*.*", format = "sdist"}]
 python = "^3.10"
 asyncio = "^3.4.3"
 pyjwt = "^2.8.0"
+cython = "^3.0.5"
 
 [build-system]
 requires = ["poetry-core"]
