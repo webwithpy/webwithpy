@@ -13,9 +13,9 @@ def check_path_exists(func: Callable, route: str):
 def GET(url="/", template=""):
     url = fix_url(url)
 
-    def inner(func):
+    def inner(func, *args, **kwargs):
         check_path_exists(func, url)
-        Router.routes.append(RouteData(func=func, url=url, method="GET", template=template))
+        Router.routes.append(RouteData(func=func, url=url, method="GET", template=template, *args, **kwargs))
 
     return inner
 
@@ -23,9 +23,9 @@ def GET(url="/", template=""):
 def POST(url="/", template=""):
     url = fix_url(url)
 
-    def inner(func):
+    def inner(func, *args, **kwargs):
         check_path_exists(func, url)
-        Router.routes.append(RouteData(func=func, url=url, method="POST", template=template))
+        Router.routes.append(RouteData(func=func, url=url, method="POST", template=template, *args, **kwargs))
 
     return inner
 
@@ -33,9 +33,9 @@ def POST(url="/", template=""):
 def ANY(url="/", template=""):
     url = fix_url(url)
 
-    def inner(func):
+    def inner(func, *args, **kwargs):
         check_path_exists(func, url)
-        Router.routes.append(RouteData(func=func, url=url, method="ANY", template=template))
+        Router.routes.append(RouteData(func=func, url=url, method="ANY", template=template, *args, **kwargs))
 
     return inner
 

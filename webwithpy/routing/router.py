@@ -3,11 +3,13 @@ from typing import Union
 
 
 class RouteData:
-    def __init__(self, func, url: str, method: str, template: Union[str, PathLike]):
+    def __init__(self, func, url: str, method: str, template: Union[str, PathLike], *args, **kwargs):
         self.func = func
         self.url = url
         self.method = method
         self.html_template = template
+        self.args = args
+        self.kwargs = kwargs
 
     def get_route(self):
         return self.url
