@@ -3,7 +3,7 @@ from typing import Union
 
 
 class RouteData:
-    def __init__(self, func, url: str, method: str, template: Union[str, PathLike], *args, **kwargs):
+    def __init__(self, func, url: str, method: str, template: Union[str, PathLike, None], *args, **kwargs):
         self.func = func
         self.url = url
         self.method = method
@@ -26,6 +26,10 @@ class RouteData:
 
 class Router:
     routes: list[RouteData] = []
+
+    @classmethod
+    def add_route(cls, func, url: str, method: str, template: str = ''):
+        Router.routes.append(RouteData(func, url, method, template))
 
     @classmethod
     def get_data_by_route(cls, url: str, method: str):

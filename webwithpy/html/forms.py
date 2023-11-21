@@ -152,7 +152,8 @@ class SQLForm:
         insert_html = f"<form action='{url(App.request.path, jwt=jwt_encoded)}' class='container' method='POST'>"
         insert_html += "".join(
             [
-                f"<input name='{field_name}' placeholder='{field_name}' type='{self.get_field_type(self.query.table_name, field_name)}'/>"
+                f"<input name='{field_name}' placeholder='{field_name}' "
+                f"type='{self.get_field_type(self.query.table_name, field_name)}'/>"
                 for field_name in DB.tables[self.query.table_name].fields.keys()
                 if field_name != "id"
             ]
@@ -363,3 +364,9 @@ class SQLForm:
 
             </style>
         """
+
+
+# This is a form in the literal sense
+class HtmlForm:
+    def __init__(self):
+        ...

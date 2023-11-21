@@ -1,4 +1,6 @@
 from .tools import cacher
+from .db import DB
+import bcrypt
 
 
 class Query:
@@ -38,6 +40,12 @@ class Query:
         :return:
         """
         sql = self.driver.insert(table_name=self.table_name, items=kwargs)
+
+        for field in DB.tables[self.table_name].fields.values():
+            if field.encrypt:
+                bcrypt.hashpw(
+                    password=kwargs[field.field_name], salt=bcrypt.gensalt(rounds=24)
+                )
 
         self.cursor.execute(sql, tuple(kwargs.values()))
         self.conn.commit()
