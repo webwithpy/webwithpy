@@ -11,6 +11,7 @@ python = "^3.10"
 asyncio = "^3.4.3"
 pyjwt = "^2.8.0"
 cython = "^3.0.5"
+bcrypt = "^3.2.0"
 
 [build-system]
 requires = ["poetry-core"]
