@@ -48,9 +48,16 @@ the function create tables will create tables based on classes that have subclas
 
 ### smart caching
 Sqp will create and remove items from the cache based on previous queries made. Caching is incredibly useful to use
-whenever you have a huge select query, or you need to do a query alot of times. The caching will be removed for a 
+whenever you have a huge select query, or with queries you need to do alot of times. The caching will be removed for a 
 specific table whenever you update or delete items from the table. In the future this is aimed to be improved where only
-some queries will be uncached when a update or delete stmt is done
+some queries will be uncached when an update or delete stmt is done.
+
+to use caching you will need to turn it on:
+```python
+class Data(Table):
+    caching = True
+    ...
+```
 
 ### fields
 In sqp fields are a pythonic representation of what the fields look like in a database.
