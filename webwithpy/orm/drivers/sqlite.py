@@ -65,9 +65,9 @@ class SqliteDriver:
 
         # if no table is found by unpacking the query, use the table_name specified in the select method
         # this is due to the user not using a where query and only db.table.select()
-        tables = tables[self.tables_selected : :]
+        tables = tables[self.tables_selected::]
 
-        # the join statement will start with the first table, the order of these tables should not matter
+        # the join statement will start with the first table, the order of these tables should not matter,
         # so we just select the first table and join the rest of the tables
         if len(tables) != 0:
             join = f"{tables[0]} "

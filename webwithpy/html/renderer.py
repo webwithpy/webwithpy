@@ -3,6 +3,7 @@ from .lexer import Lexer
 from .parser import DefaultParser
 from typing import List
 
+
 class RenderBlock:
     def __init__(self, code: str):
         self.code = code
@@ -14,7 +15,7 @@ class DefaultRenderer:
     spacing = ''
 
     @classmethod
-    def generate_pre_code(cls, program: List[Stmt], spacing: str='') -> str:
+    def generate_pre_code(cls, program: List[Stmt], spacing: str = '') -> str:
         # we might need to start with diff spacing for fast impl
         if len(spacing) > 0:
             cls.spacing = spacing

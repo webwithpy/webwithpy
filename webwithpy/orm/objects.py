@@ -1,9 +1,10 @@
 from .dialects.sqlite import SqliteDialect
 from .query import Query
+from typing import Dict
 
 
 class Field:
-    def __init__(self, field_type):
+    def __init__(self, field_type, encrypt: bool = False):
         self.db = None
         self.conn = None
         self.cursor = None
@@ -12,6 +13,7 @@ class Field:
         self.field_name = ""
         self.field_type = self._translate_type(field_type)
         self.cache = False
+        self.encrypt = encrypt
 
     def _translate_type(self, field_type):
         field_type_mapping = {
@@ -136,7 +138,7 @@ class Table:
         self.conn = conn
         self.cursor = cursor
         self.table_name = table_name
-        self.fields: dict = {field.field_name: field for field in fields}
+        self.fields: Dict[str, Field] = {field.field_name: field for field in fields}
         self.dialect = dialect
         self.driver = driver
         self.caching = caching
