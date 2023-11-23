@@ -1,7 +1,6 @@
-from ..orm.query import Query
-from ..orm.db import DB
 from ..app import App
 from ..http import url
+from .pyhtml import Input, Span, Div, H4, H3, A
 import jwt
 
 
@@ -9,7 +8,7 @@ import jwt
 class SQLForm:
     def __init__(
         self,
-        query: Query,
+        query,
         fields: list = None,
         smart=False,
         create=True,
@@ -37,6 +36,7 @@ class SQLForm:
         self.onupdate = onupdate
         self.ondelete = ondelete
         self.query = query
+        self.db = query.db
         self.fields = [str(field).split(".")[1] for field in fields]
 
     def as_html(self):
@@ -54,29 +54,24 @@ class SQLForm:
             elif "edit" in jwt_decoded:
                 return self.default_styling() + self.edit_form(jwt_decoded["idx"])
             elif "insert_data" in jwt_decoded:
-                db = self.query.db
-
                 # get the id of the field we are going te be selecting
-                table = getattr(db, self.query.__tables__()[0])
+                table = getattr(self.db, self.query.__tables__()[0])
                 table.insert(**App.request.form_data)
             elif "edit_data" in jwt_decoded:
-                db = self.query.db
                 # TODO, make the user give the table, rn we are only gonna grab the first table from the table
                 fields = self.query.select()
 
                 # get the id of the field we are going te be selecting
-                table = getattr(db, self.query.__tables__()[0])
+                table = getattr(self.db, self.query.__tables__()[0])
                 (table.id == fields[jwt_decoded["idx"]]["id"]).update(
                     **App.request.form_data
                 )
             elif "delete_data" in jwt_decoded:
-                db = self.query.db
-
                 # TODO, make the user give the table, rn we are only gonna grab the first table from the table
                 fields = self.query.select()
 
                 # get the id of the field we are going te be selecting
-                table = getattr(db, self.query.__tables__()[0])
+                table = getattr(self.db, self.query.__tables__()[0])
                 (table.id == fields[jwt_decoded["idx"]]["id"]).delete(
                     **App.request.form_data
                 )
@@ -134,7 +129,9 @@ class SQLForm:
         keys = ""
         for table in tables:
             for field_name in (
-                DB.tables[table].fields.keys() if len(self.fields) == 0 else self.fields
+                self.db.tables[table].fields.keys()
+                if len(self.fields) == 0
+                else self.fields
             ):
                 keys += f"<td class='block'>{field_name}</td>"
         keys += "<th class='block'></th>" * (
@@ -154,7 +151,7 @@ class SQLForm:
             [
                 f"<input name='{field_name}' placeholder='{field_name}' "
                 f"type='{self.get_field_type(self.query.table_name, field_name)}'/>"
-                for field_name in DB.tables[self.query.table_name].fields.keys()
+                for field_name in self.db.tables[self.query.table_name].fields.keys()
                 if field_name != "id"
             ]
         )
@@ -197,20 +194,18 @@ class SQLForm:
         edit_html += "</form>"
         return edit_html
 
-    @classmethod
-    def get_field_type(cls, table_name, field_name):
-        field_type = DB.tables[table_name].fields[field_name].field_type
+    def get_field_type(self, table_name, field_name):
+        field_type = self.db.tables[table_name].fields[field_name].field_type
 
-        translation_table = {
-            'IMAGE': 'file'
-        }
+        translation_table = {"IMAGE": "file"}
 
-        return translation_table.get(field_type, 'text')
+        return translation_table.get(field_type, "text")
 
     @classmethod
     def no_records(cls):
         return f"""
                 {cls.add_button()}
+                {H3(text="No Records Found!")}
                 <h3>No Records Found!</h3>
         """
 
@@ -222,23 +217,31 @@ class SQLForm:
             algorithm="HS256",
         )
 
-        return f"""
-                <a class ="button btn btn-default btn-secondary insert" href="{url(App.request.path, jwt=jwt_encoded)}">
-                        <span title="Add">Add</span></a>
-            """
+        return A(
+            Span(
+                "Add",
+                title="Add",
+            ),
+            _class="button btn btn-default btn-secondary insert",
+            _href=url(App.request.path, jwt=jwt_encoded).__str__(),
+        )
 
     @classmethod
     def submit_button(cls):
-        return f"""
-            <input type='submit' class="button btn btn-default btn-secondary insert""/>
-        """
+        return Input(
+            _type="submit", _class="button btn btn-default btn-secondary insert"
+        )
 
     @classmethod
     def back_button(cls):
-        return f"""
-            <a class="button btn btn-default btn-secondary insert" href="/">
-                    <span title="Back">Back</span></a>
-        """
+        return A(
+            Span(
+                "Back",
+                title="Back",
+            ),
+            _class="button btn btn-default btn-secondary insert",
+            _href="/",
+        ).__str__()
 
     @classmethod
     def view_button(cls, button_idx):
@@ -248,10 +251,14 @@ class SQLForm:
             algorithm="HS256",
         )
 
-        return f"""
-            <a class ="button btn btn-default btn-secondary insert" href="{url(App.request.path, jwt=jwt_encoded)}">
-                        <span title="View">View</span></a>
-        """
+        return A(
+            Span(
+                "View",
+                title="View",
+            ),
+            _class="button btn btn-default btn-secondary insert",
+            _href=url(App.request.path, jwt=jwt_encoded).__str__(),
+        )
 
     @classmethod
     def edit_button(cls, button_idx):
@@ -261,10 +268,14 @@ class SQLForm:
             algorithm="HS256",
         )
 
-        return f"""
-                <a class ="button btn btn-default btn-secondary insert" href="{url(App.request.path, jwt=jwt_encoded)}">
-                        <span title="Edit">Edit</span></a>
-            """
+        return A(
+            Span(
+                "Edit",
+                title="Edit",
+            ),
+            _class="button btn btn-default btn-secondary insert",
+            _href=url(App.request.path, jwt=jwt_encoded).__str__(),
+        )
 
     @classmethod
     def delete_button(cls, button_idx):
@@ -274,10 +285,14 @@ class SQLForm:
             algorithm="HS256",
         )
 
-        return f"""
-                <a class ="button btn btn-default btn-secondary insert" href="{url(App.request.path, jwt=jwt_encoded)}">
-                        <span title="Delete">Delete</span></a>
-            """
+        return A(
+            Span(
+                "Delete",
+                title="Delete",
+            ),
+            _class="button btn btn-default btn-secondary insert",
+            _href=url(App.request.path, jwt=jwt_encoded).__str__(),
+        )
 
     @classmethod
     def default_styling(cls):

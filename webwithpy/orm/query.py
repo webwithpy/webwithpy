@@ -1,5 +1,4 @@
 from .tools import cacher
-from .db import DB
 import bcrypt
 
 
@@ -35,13 +34,13 @@ class Query:
 
     def insert(self, **kwargs) -> None:
         """
-        NOTE ALL FIELDS ARE REQUIRED TO USE THE INSERT CURRENTLY
         :param kwargs: list of values that will be inserted into the table
         :return:
         """
         sql = self.driver.insert(table_name=self.table_name, items=kwargs)
 
-        for field in DB.tables[self.table_name].fields.values():
+        # TODO: do hashing client side so we don't have to here!
+        for field in self.__tables__()[self.table_name].fields.values():
             if field.encrypt:
                 bcrypt.hashpw(
                     password=kwargs[field.field_name], salt=bcrypt.gensalt(rounds=24)

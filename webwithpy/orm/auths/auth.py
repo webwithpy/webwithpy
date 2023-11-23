@@ -1,6 +1,5 @@
-from .objects import Table, Field
-from ..html.forms import SQLForm
-from .db import DB
+from webwithpy.html.forms import SQLForm
+from webwithpy.orm.objects import Table, Field
 
 
 class AuthUser(Table):

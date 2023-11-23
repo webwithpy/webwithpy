@@ -1,5 +1,5 @@
 from ..routing.router import Router
-from .auth import AuthUser, login_form, register_form
+from .auths.auth import AuthUser, login_form, register_form
 from .objects import Table, Field
 from sqlite3 import dbapi2 as sqlite
 from pathlib import Path
@@ -86,8 +86,8 @@ class DB:
 
     def create_auth(self):
         self.create_table(AuthUser)
-        Router.add_route(login_form(), url='/login', method='ANY')
-        Router.add_route(register_form(), url='/register', method='ANY')
+        Router.add_route(login_form(), url="/login", method="ANY")
+        Router.add_route(register_form(), url="/register", method="ANY")
 
     def _set_field(self, field, field_name, table_name, cache: bool):
         field.field_name = field_name
