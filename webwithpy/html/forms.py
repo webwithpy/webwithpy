@@ -1,6 +1,8 @@
 from ..app import App
 from ..http import url
 from .pyhtml import Input, Span, Div, H4, H3, A
+from ..routing.router import Router
+import pkgutil
 import jwt
 
 
@@ -296,87 +298,13 @@ class SQLForm:
 
     @classmethod
     def default_styling(cls):
-        return """
+        return f"""
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
             <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
             <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
             <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.1.2/build/styles/default.min.css">
             <style type="text/css" media="screen">
-                table {
-                    border-collapse: collapse;
-                    margin-top: 7px;
-                }
-
-                table td {
-                    padding: 2px 5px;
-                    min-width: 67px;
-                    min-height: 40px;
-                    text-align: center;
-                    height: 40px;
-                    font-size: 14px;
-                    line-height: 1.42857143;
-                    box-sizing: border-box;
-                    margin: 0 auto;
-                }
-
-                table th {
-                    color: #29abe0;
-                    padding: 10px 5px;
-                    background-color: #EAEAEA;
-                    box-sizing: border-box;
-                }
-
-                tbody tr:nth-child(odd) {
-                    background-color: #F9F9F9;
-                }
-                tbody tr:nth-child(even) {
-                    background-color: #ffffff;
-                }
-
-                tbody tr:hover {
-                    background-color: #F2F2F2;
-                }
-
-                .insert {
-                    margin-bottom: 10px;
-                }
-
-                .btn-default {
-                    color: #ffffff;
-                    background-color: #3e3f3a;
-                    border-color: transparent;
-                }
-
-                .block {
-                    background-color: #EBEBEB;
-                }
-
-                .scroll_div {
-                    margin: 10 10;
-                    overflow-x: auto;
-                    max-width: 95%;
-                }
-                .container {
-                    display: grid;
-                    grid-template-columns: repeat(1, 2fr);
-                    gap: 30px;
-                    justify-items: center;
-                    margin-top: 20px;
-                    min-height: 200px;
-                    border-style: solid;
-                }
-
-                .child {
-                    display: grid;
-                    grid-template-columns: auto 1fr;
-                    gap: 20px;
-                    align-items: center;
-                }
-
-                .field_block {
-                    min-width: 200px;
-                }
-
+                {pkgutil.get_data(__name__, "../static/form.css").decode()}
             </style>
         """
 
