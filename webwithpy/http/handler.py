@@ -1,8 +1,9 @@
 from ..exeptions.RouteExceptions import RouteNotFound
 from ..routing.router import Router
+from ..app import App
+from .redirect import Redirect
 from .request import Request
 from .response import Response
-from ..app import App
 from asyncio import AbstractEventLoop, StreamWriter
 import socket
 import asyncio
@@ -46,9 +47,14 @@ class HTTPHandler:
 
         #  try to find the function by the request path
         try:
-            func_out, html_template = await self.call_func_by_route(App.request.path, App.request.method)
-            # make sure we never send any data with the response is 404(can leak data)
+            func_out, html_template = await self.call_func_by_route(
+                App.request.path, App.request.method
+            )
+            # make sure we never send any data with the response is 404(DON'T REMOVE CAN LEAK DATA IF REMOVED)
             if isinstance(func_out, RouteNotFound):
+                return
+            elif isinstance(func_out, Redirect):
+                await self.send_response(func_out.__str__().encode())
                 return
             self.resp.add_content(func_out, html_template)
         except Exception as e:
@@ -79,9 +85,15 @@ class HTTPHandler:
             return RouteNotFound(route, method), None
 
         if self.async_func(routed_data.func):
-            return await routed_data.func(*routed_data.args, **routed_data.kwargs), routed_data.html_template
+            return (
+                await routed_data.func(*routed_data.args, **routed_data.kwargs),
+                routed_data.html_template,
+            )
 
-        return routed_data.func(*routed_data.args, **routed_data.kwargs), routed_data.html_template
+        return (
+            routed_data.func(*routed_data.args, **routed_data.kwargs),
+            routed_data.html_template,
+        )
 
     async def send_response(self, resp: bytes | str = b""):
         """
