@@ -16,29 +16,10 @@ class HtmlTag:
 
 class Form(HtmlTag):
     def __init__(
-        self,
-        _accept_charset: str = "",
-        _action: str = "",
-        _autocomplete: str = "",
-        _enctype: str = "",
-        _method: str = "",
-        _name: str = "",
-        _novalidate: str = "",
-        _rel: str = "",
-        _target: str = "",
-        *tags: str | HtmlTag,
+        self, *tags: str | HtmlTag, _name: str = "", _class: str = "", **attrs
     ):
-        self.attributes = {
-            "accept_charset": _accept_charset,
-            "action": _action,
-            "autocomplete": _autocomplete,
-            "enctype": _enctype,
-            "method": _method,
-            "name": _name,
-            "novalidate": _novalidate,
-            "rel": _rel,
-            "target": _target,
-        }
+        self.attributes = {"name": _name, "class": _class}
+        self.attributes.update(attrs)
 
         for attribute, value in self.attributes.items():
             self.attributes[attribute] = self.set_tag(f"{attribute}={value}", value)
@@ -64,6 +45,7 @@ class Label(HtmlTag):
 class Input(HtmlTag):
     def __init__(
         self,
+        disabled: bool = False,
         _name: str = "",
         _type: str = "",
         _class: str = "",
@@ -72,10 +54,11 @@ class Input(HtmlTag):
         self._name = self.set_tag(f"name='{_name}'", _name)
         self._type = self.set_tag(f"type='{_type}'", _type)
         self._class = self.set_tag(f"class='{_class}'", _class)
+        self.disabled = self.set_tag("disabled", disabled)
         self.attrs = self.set_dict_attrs(attrs)
 
     def __str__(self):
-        return f"<input {self._name} {self._type} {self._class} {self.attrs}/>"
+        return f"<input {self._name} {self._type} {self._class} {self.attrs} {self.disabled}/>"
 
 
 class Span(HtmlTag):
@@ -88,12 +71,13 @@ class Span(HtmlTag):
 
 
 class Div(HtmlTag):
-    def __init__(self, *tags: str | HtmlTag, **attrs: str):
+    def __init__(self, *tags: str | HtmlTag, _class: str = "", **attrs: str):
+        self._class = _class
         self.tags = tags
         self.attrs = attrs
 
     def __str__(self):
-        return f"<div {self.set_dict_attrs(self.attrs)}>{''.join(self.tags)}</div>"
+        return f"<div class={self._class} {self.set_dict_attrs(self.attrs)}>{''.join(self.tags)}</div>"
 
 
 class H3(HtmlTag):
@@ -106,12 +90,13 @@ class H3(HtmlTag):
 
 
 class H4(HtmlTag):
-    def __init__(self, text: str = "", **attrs):
+    def __init__(self, _class: str = "", text: str = "", **attrs):
+        self._class = _class
         self.text = text
         self.attrs = self.set_dict_attrs(attrs)
 
     def __str__(self):
-        return f"<h4 {self.attrs}>{''.join(self.text)}</h4>"
+        return f"<h4 class={self._class} {self.attrs}>{''.join(self.text)}</h4>"
 
 
 class A(HtmlTag):

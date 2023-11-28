@@ -45,24 +45,32 @@ class DB:
         return self.cursor.execute(sql)
 
     def create_table(self, table: Table | Type[Table]):
+        """
+        sets up all needed variables for tables and its fields
+        """
+        # add custom ID field
         id_field = Field(field_type="INTEGER PRIMARY KEY AUTOINCREMENT")
-        cache = table.cache if "cache" in vars(table) else False
 
+        # get if these vars are set
+        cache = table.cache if "cache" in vars(table) else False
         table_name = table.table_name if "table_name" in vars(table) else table.__name__
 
+        # setup all fields of the table
         table_fields = {
             var: vars(table)[var]
             for var in vars(table)
             if isinstance(vars(table)[var], Field)
         }
-
         table_fields["id"] = id_field
 
+        # give all fields the necessary params
         for field_name, field in table_fields.items():
             self._set_field(field, field_name, table_name, cache)
 
+        # give the table self so it can exec queries
         table.db = self
 
+        
         tbl = Table(
             db=self,
             conn=DB.conn,
@@ -77,10 +85,16 @@ class DB:
         self._create_table(table_name, *[field for field in table_fields.values()])
 
     def create_tables(self, *tables: Type[Table]):
+        """
+        creates all given tables
+        """
         for table in tables:
             self.create_table(table)
 
     def create_all_tables(self):
+        """
+        creates all tables that have subclassed Table
+        """
         for table in Table.__subclasses__():
             self.create_table(table)
 
@@ -89,7 +103,10 @@ class DB:
         Router.add_route(login_form(), url="/login", method="ANY")
         Router.add_route(register_form(), url="/register", method="ANY")
 
-    def _set_field(self, field, field_name, table_name, cache: bool):
+    def _set_field(self, field: Field, field_name: str, table_name: str, cache: bool):
+        """
+        sets the appropriate fields for the Field class
+        """
         field.field_name = field_name
         field.table_name = table_name
         field.cursor = DB.cursor
@@ -100,6 +117,9 @@ class DB:
 
     @classmethod
     def _get_driver(cls, driver: str):
+        """
+        tries to find the given driver(curr only 1 exists)
+        """
         match driver:
             case "sqlite":
                 from .drivers.sqlite import SqliteDriver
@@ -110,6 +130,9 @@ class DB:
 
     @classmethod
     def _create_table(cls, table_name: str, *fields: Field):
+        """
+        creates tables with according field types
+        """
         sql = f"CREATE TABLE IF NOT EXISTS {table_name} ("
 
         for field in fields:
