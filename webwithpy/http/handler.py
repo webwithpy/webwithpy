@@ -50,11 +50,12 @@ class HTTPHandler:
             func_out, html_template = await self.call_func_by_route(
                 App.request.path, App.request.method
             )
+
             # make sure we never send any data with the response is 404(DON'T REMOVE CAN LEAK DATA IF REMOVED)
             if isinstance(func_out, RouteNotFound):
                 return
-            elif isinstance(func_out, Redirect):
-                await self.send_response(func_out.__str__().encode())
+            elif App.redirect is not None:
+                await self.send_response(App.redirect._to_http())
                 return
             self.resp.add_content(func_out, html_template)
         except Exception as e:

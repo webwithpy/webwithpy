@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from ..app import App
 from ..http import url
+from ..http.redirect import Redirect
 from .pyhtml import Input, Span, Div, H4, H3, A, Form
-from ..routing.router import Router
 import pkgutil
 import jwt
 
@@ -84,7 +86,6 @@ class SQLForm:
                 table.insert(**App.request.form_data)
             # we can edit data that has been sent to the database
             elif "edit_data" in jwt_decoded:
-                # TODO, make the user give the table, rn we are only gonna grab the first table from the table
                 fields = self.query.select()
 
                 # get the id of the field we are going te be selecting
@@ -94,7 +95,6 @@ class SQLForm:
                 )
             # delete data based on given params
             elif "delete_data" in jwt_decoded:
-                # TODO, make the user give the table, rn we are only gonna grab the first table from the table
                 fields = self.query.select()
 
                 # get the id of the field we are going te be selecting
@@ -102,7 +102,7 @@ class SQLForm:
                 (table.id == fields[jwt_decoded["idx"]]["id"]).delete(
                     **App.request.form_data
                 )
-
+                return Redirect(App.request.path)
         return (
             f"<head>{self.default_styling()}</head>"
             + f"<body>{self.rows_to_table()}</body>"
@@ -191,7 +191,7 @@ class SQLForm:
             _class="container",
         )
 
-        return insert_html
+        return insert_html.__str__()
 
     def view_form(self, idx):
         """
@@ -201,7 +201,7 @@ class SQLForm:
         view_html = Div(
             *[
                 Div(
-                    H4(_class="field_block"),
+                    H4(text=key, _class="field_block"),
                     Input(disabled=True, value=value),
                     _class="child",
                 ).__str__()
@@ -256,7 +256,6 @@ class SQLForm:
         return f"""
                 {cls.add_button()}
                 {H3(text="No Records Found!")}
-                <h3>No Records Found!</h3>
         """
 
     @classmethod

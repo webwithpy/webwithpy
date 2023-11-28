@@ -1,5 +1,13 @@
+from __future__ import annotations
 from .tools import cacher
 import bcrypt
+import copy
+
+# Add everything for type checking
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..orm.db import DB
 
 
 class Query:
@@ -17,7 +25,7 @@ class Query:
         tbl_name: str = None,
         using_cache: bool = False,
     ):
-        self.db = db
+        self.db: DB = db
         self.conn = conn
         self.cursor = cursor
         self.dialect = dialect
@@ -30,7 +38,9 @@ class Query:
 
     def __tables__(self):
         unpacked_query = self.dialect.unpack(self)
-        return self.driver._unpacked_as_sql(unpacked_query)["tables"]
+        return self.driver._unpacked_as_sql(unpacked_query).get("tables") or {
+            self.table_name: self.db.tables[self.table_name]
+        }
 
     def insert(self, **kwargs) -> None:
         """

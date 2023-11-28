@@ -27,7 +27,7 @@ class Form(HtmlTag):
         self.tags = tags
 
     def __str__(self):
-        return f"<form {' '.join([attr for attr in self.attributes])}>{''.join(self.tags.__str__())}</form>"
+        return f"<form {' '.join([attr for attr in self.attributes.values()])}>{''.join([tag.__str__() for tag in self.tags])}</form>"
 
 
 class Label(HtmlTag):
@@ -77,7 +77,7 @@ class Div(HtmlTag):
         self.attrs = attrs
 
     def __str__(self):
-        return f"<div class={self._class} {self.set_dict_attrs(self.attrs)}>{''.join(self.tags)}</div>"
+        return f"<div class={self._class} {self.set_dict_attrs(self.attrs)}>{''.join([tag.__str__() for tag in self.tags])}</div>"
 
 
 class H3(HtmlTag):
