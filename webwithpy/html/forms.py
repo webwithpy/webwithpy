@@ -237,12 +237,9 @@ class SQLForm:
     @classmethod
     def back_button(cls):
         return A(
-            Span(
-                "Back",
-                title="Back",
-            ),
+            Span("Back", title="Back"),
             _class="button btn btn-default btn-secondary insert",
-            _href="/",
+            _href=url(App.request.path),
         ).__str__()
 
     @classmethod
