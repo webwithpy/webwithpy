@@ -3,7 +3,7 @@ from __future__ import annotations
 from ..app import App
 from ..http import url
 from ..http.redirect import Redirect
-from .pyhtml import Input, Span, Div, H4, H3, A, Form
+from .pyhtml import Input, Span, Div, H4, H3, P, A, Form
 import pkgutil
 import jwt
 
@@ -16,7 +16,68 @@ if TYPE_CHECKING:
     from ..orm.objects import Table, Field
 
 
-class SQLForm:
+class FormTools:
+    @classmethod
+    def encode_jwt(cls, items: dict):
+        """
+        encodes items in jwt
+        """
+        return jwt.encode(
+            items,
+            App.response.cookies["session"],
+            algorithm="HS256",
+        )
+
+    @classmethod
+    def decode_jwt(cls, jwt_str: str):
+        """
+        decodes encode jwt string
+        """
+
+        return jwt.decode(
+            jwt_str,
+            key=App.response.cookies["session"],
+            algorithms=["HS256"],
+        )
+
+    @classmethod
+    def submit_button(cls):
+        """
+        submits form information
+        """
+        return Input(
+            _type="submit", _class="button btn btn-default btn-secondary insert"
+        )
+
+    @classmethod
+    def default_styling(cls):
+        """
+        default styling for all sql grids
+        """
+        return f"""
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+            <link rel="stylesheet" 
+            href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.1.2/build/styles/default.min.css">
+            <style type="text/css" media="screen">
+                {pkgutil.get_data(__name__, "../static/form.css").decode()}
+            </style>
+        """
+
+    @classmethod
+    def get_field_type(cls, db: DB, table_name: str, field_name: str):
+        """
+        gets the type of fields in html, so we can display it better in html
+        """
+
+        field_type = db.tables[table_name].fields[field_name].field_type
+        translation_table = {"IMAGE": "file"}
+
+        return translation_table.get(field_type, "text")
+
+
+class SQLForm(FormTools):
     """
     Form inspired by web2py.
     Note that the use of these kind of forms is only made for admins not regular users
@@ -179,8 +240,10 @@ class SQLForm:
             *[
                 Input(
                     _name=field_name,
+                    _type=self.get_field_type(
+                        self.db, self.query.table_name, field_name
+                    ),
                     placeholder=field_name,
-                    _type=self.get_field_type(self.query.table_name, field_name),
                 ).__str__()
                 for field_name in self.db.tables[self.query.table_name].fields.keys()
                 if field_name != "id"
@@ -238,16 +301,6 @@ class SQLForm:
 
         return edit_html.__str__()
 
-    def get_field_type(self, table_name, field_name):
-        """
-        gets the type of fields in html, so we can display it better in html
-        """
-
-        field_type = self.db.tables[table_name].fields[field_name].field_type
-        translation_table = {"IMAGE": "file"}
-
-        return translation_table.get(field_type, "text")
-
     @classmethod
     def no_records(cls):
         """
@@ -270,15 +323,6 @@ class SQLForm:
             Span("Add", title="Add"),
             _class="button btn btn-default btn-secondary insert",
             _href=url(App.request.path, jwt=jwt_encoded).__str__(),
-        )
-
-    @classmethod
-    def submit_button(cls):
-        """
-        submits form information
-        """
-        return Input(
-            _type="submit", _class="button btn btn-default btn-secondary insert"
         )
 
     @classmethod
@@ -336,47 +380,62 @@ class SQLForm:
             _href=url(App.request.path, jwt=jwt_encoded).__str__(),
         )
 
-    @classmethod
-    def default_styling(cls):
-        """
-        default styling for all sql grids
-        """
-        return f"""
-            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-            <link rel="stylesheet" 
-            href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.1.2/build/styles/default.min.css">
-            <style type="text/css" media="screen">
-                {pkgutil.get_data(__name__, "../static/form.css").decode()}
-            </style>
-        """
 
-    @classmethod
-    def encode_jwt(cls, items: dict):
-        """
-        encodes items in jwt
-        """
-        return jwt.encode(
-            items,
-            App.response.cookies["session"],
-            algorithm="HS256",
+class InputForm(FormTools):
+    """
+    form with input fields that can be submitted
+    """
+
+    def __init__(self, table: Table, form_controller=None, fields: list = None):
+        self.table = table
+        self.db = self.table.db
+        self.table_name = self.table.table_name
+        self.fields = fields
+        self.form_controller = form_controller
+        self.form_data = None
+        self.accepted = False
+        self.error_msg = ""
+
+        self.verify_form_submit()
+
+    def verify_form_submit(self):
+        if "jwt" in App.request.vars:
+            jwt_decoded: dict = self.decode_jwt(App.request.vars["jwt"])
+            if jwt_decoded.get("accepted") and self.form_controller is None:
+                self.accepted = True
+                self.form_data = App.request.form_data
+            elif jwt_decoded.get("accepted") and self.form_controller(
+                self, App.request.form_data
+            ):
+                self.accepted = True
+                self.form_data = App.request.form_data
+            else:
+                self.accepted = False
+        else:
+            self.accepted = False
+
+    def __str__(self):
+        encoded_jwt = self.encode_jwt({"accepted": True})
+        return (
+            self.default_styling()
+            + Form(
+                *[
+                    Input(
+                        _name=field_name,
+                        _type=self.get_field_type(self.db, self.table_name, field_name),
+                        placeholder=field_name,
+                    ).__str__()
+                    for field_name in (
+                        self.db.tables[self.table_name].fields.keys()
+                        if not self.fields
+                        else self.fields
+                    )
+                    if field_name != "id"
+                ],
+                P(text=self.error_msg, style="color: red;") if self.error_msg else "",
+                Div(self.submit_button()),
+                action=url(App.request.path, jwt=encoded_jwt),
+                method="POST",
+                _class="container",
+            ).__str__()
         )
-
-    @classmethod
-    def decode_jwt(cls, jwt_str: str):
-        """
-        decodes encode jwt string
-        """
-
-        return jwt.decode(
-            jwt_str,
-            key=App.response.cookies["session"],
-            algorithms=["HS256"],
-        )
-
-
-# This is a form in the literal sense
-class TableForm:
-    def __init__(self, table):
-        ...

@@ -1,5 +1,7 @@
+import sys
 import socket
 import asyncio
+import warnings
 
 from asyncio.events import AbstractEventLoop
 from .http.handler import HTTPHandler
@@ -11,6 +13,15 @@ SERVER_PORT = 8000
 
 def run_server(server_host="127.0.0.1", server_port=8000):
     global SERVER_HOST, SERVER_PORT
+
+    current_py_version = sys.version_info
+    if current_py_version.major != 3 or current_py_version.minor < 12:
+        warnings.warn(
+            "current python version is deprecated! whenever official py 3.13 launches <=py3.12 will be"
+            " unsupported.\nuse of py3.12 is recommended for longest support!",
+            DeprecationWarning,
+        )
+
     SERVER_HOST, SERVER_PORT = (server_host, server_port)
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -45,7 +56,7 @@ async def load_clients(server: socket.socket, loop: AbstractEventLoop):
                     server=loop,
                     client=client_conn,
                     writer=writer,
-                    client_request=client_request
+                    client_request=client_request,
                 )
             )
 

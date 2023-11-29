@@ -7,6 +7,7 @@ import copy
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from .drivers.driver_interface import IDriver
     from ..orm.db import DB
 
 
@@ -18,7 +19,7 @@ class Query:
         conn=None,
         cursor=None,
         dialect=None,
-        driver=None,
+        driver: IDriver = None,
         operator="=",
         first=None,
         second=None,
@@ -29,7 +30,7 @@ class Query:
         self.conn = conn
         self.cursor = cursor
         self.dialect = dialect
-        self.driver = driver
+        self.driver: IDriver = driver
         self.operator = operator
         self.first = first
         self.second = second
@@ -38,9 +39,9 @@ class Query:
 
     def __tables__(self):
         unpacked_query = self.dialect.unpack(self)
-        return self.driver._unpacked_as_sql(unpacked_query).get("tables") or {
-            self.table_name: self.db.tables[self.table_name]
-        }
+        return self.driver.translate_unpacked_query_sql(unpacked_query).get(
+            "tables"
+        ) or {self.table_name: self.db.tables[self.table_name]}
 
     def insert(self, **kwargs) -> None:
         """
@@ -49,11 +50,11 @@ class Query:
         """
         sql = self.driver.insert(table_name=self.table_name, items=kwargs)
 
-        # TODO: do hashing client side so we don't have to here!
         for field in self.__tables__()[self.table_name].fields.values():
             if field.encrypt:
-                bcrypt.hashpw(
-                    password=kwargs[field.field_name], salt=bcrypt.gensalt(rounds=24)
+                kwargs[field.field_name] = bcrypt.hashpw(
+                    password=kwargs[field.field_name].encode(),
+                    salt=bcrypt.gensalt(rounds=4),
                 )
 
         self.cursor.execute(sql, tuple(kwargs.values()))
@@ -68,7 +69,7 @@ class Query:
         :return:
         """
         # generate the select statement
-        sql = self.driver.select_sql(
+        sql, args = self.driver.select_sql(
             *fields,
             table_name=self.table_name,
             query=self,
@@ -83,31 +84,31 @@ class Query:
             ):
                 return cached
             else:
-                value = self.cursor.execute(sql).fetchall()
+                value = self.cursor.execute(sql, args).fetchall()
                 cacher.insert_cache(
                     table_name=self.table_name, select_stmt=sql, value=value
                 )
                 return value
 
         # execute the sql
-        return self.cursor.execute(sql).fetchall()
+        return self.cursor.execute(sql, args).fetchall()
 
     def update(self, **kwargs):
         if self.using_cache:
             cacher.remove_table_cache(self.table_name)
 
-        sql = self.driver.update(query=self, **kwargs)
+        sql, args = self.driver.update(query=self, **kwargs)
 
-        self.cursor.execute(sql, tuple(kwargs.values()))
+        self.cursor.execute(sql, list(kwargs.values()) + args)
         self.conn.commit()
 
     def delete(self):
         if self.using_cache:
             cacher.remove_table_cache(self.table_name)
 
-        sql = self.driver.delete(query=self)
+        sql, args = self.driver.delete(query=self)
 
-        self.cursor.execute(sql)
+        self.cursor.execute(sql, args)
         self.conn.commit()
 
     def __and__(self, other):

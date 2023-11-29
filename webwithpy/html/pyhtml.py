@@ -118,3 +118,24 @@ class A(HtmlTag):
 
     def __str__(self):
         return f"<a {self._class} {self._href} {self.attrs}> {''.join([tag.__str__() for tag in self.tags])} </a>"
+
+
+class P(HtmlTag):
+    """
+    Html <p> </p> tag in python
+    """
+
+    def __init__(
+        self,
+        text: str = "",
+        _class: str = "",
+        _href: str = "",
+        **attrs: str,
+    ):
+        self.text = text
+        self._class = self.set_tag(f"class='{_class}'", _class)
+        self._href = self.set_tag(f'href="{_href}"', _href)
+        self.attrs = self.set_dict_attrs(attrs)
+
+    def __str__(self):
+        return f"<a {self._class} {self._href} {self.attrs}> {self.text} </a>"

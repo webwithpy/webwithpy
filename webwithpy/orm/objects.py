@@ -137,7 +137,7 @@ class Table:
         self.db = db
         self.conn = conn
         self.cursor = cursor
-        self.table_name = table_name
+        self.table_name = table_name or self.__name__
         self.fields: Dict[str, Field] = {field.field_name: field for field in fields}
         self.dialect = dialect
         self.driver = driver

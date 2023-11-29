@@ -1,5 +1,4 @@
 from ..routing.router import Router
-from .auths.auth import AuthUser, login_form, register_form
 from .objects import Table, Field
 from sqlite3 import dbapi2 as sqlite
 from pathlib import Path
@@ -17,8 +16,11 @@ class DB:
     tables: Dict[str, Table] = None
     url = None
 
-    def __init__(self, db_path: str):
-        driver, db_path = db_path.split(":/")
+    def __init__(self, db_path: str = None):
+        if db_path:
+            driver, db_path = db_path.split(":/")
+        else:
+            driver, db_path = DB.driver, DB.url
 
         if DB.driver is None:
             DB.driver = self._get_driver(driver)
@@ -70,7 +72,6 @@ class DB:
         # give the table self so it can exec queries
         table.db = self
 
-        
         tbl = Table(
             db=self,
             conn=DB.conn,
@@ -80,8 +81,8 @@ class DB:
             fields=[value for value in table_fields.values()],
             caching=cache,
         )
-
         DB.tables[table_name] = tbl
+
         self._create_table(table_name, *[field for field in table_fields.values()])
 
     def create_tables(self, *tables: Type[Table]):
@@ -97,11 +98,6 @@ class DB:
         """
         for table in Table.__subclasses__():
             self.create_table(table)
-
-    def create_auth(self):
-        self.create_table(AuthUser)
-        Router.add_route(login_form(), url="/login", method="ANY")
-        Router.add_route(register_form(), url="/register", method="ANY")
 
     def _set_field(self, field: Field, field_name: str, table_name: str, cache: bool):
         """
