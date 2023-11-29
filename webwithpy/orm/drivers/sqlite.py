@@ -158,6 +158,13 @@ class SqliteDriver(IDriver):
 
         return "." in field
 
+    @classmethod
+    def _tables_to_join(cls, tables):
+        """
+        make it so that every table is joined
+        """
+        return f"".join([f" INNER JOIN {table}" for table in tables[1:]])
+
     def insert(self, table_name: str, items: dict):
         return f"INSERT INTO {table_name} ({','.join(items.keys())}) VALUES ({','.join(['?' for _ in items.keys()])})"
 

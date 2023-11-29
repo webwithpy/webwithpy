@@ -88,9 +88,11 @@ class Query:
                 cacher.insert_cache(
                     table_name=self.table_name, select_stmt=sql, value=value
                 )
+
                 return value
 
         # execute the sql
+        print(sql)
         return self.cursor.execute(sql, args).fetchall()
 
     def update(self, **kwargs):
