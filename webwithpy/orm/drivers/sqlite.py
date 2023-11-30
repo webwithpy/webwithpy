@@ -107,22 +107,21 @@ class SqliteDriver(IDriver):
     def translate_unpacked_query_sql(
         self, unpacked_query: dict[str, list[str]]
     ) -> dict[str, set | list | str]:
+        # all necessary sql information for getting tables, args and the where statement out of the query
         sql_information: dict[str, set | list | str] = {
             "tables": set(),
             "args": [],
             "where_stmt": "",
         }
-        fields: list[str] = []
-        for field in unpacked_query["fields"]:
-            if isinstance(field, Field):
-                fields.append(str(field))
-            else:
-                fields.append(field)
 
+        # putting unpacked_query[fields, stmts] in its own variable so its more readable
+        fields: list[str] = unpacked_query["fields"]
         stmts: list[str] = unpacked_query["stmts"]
 
+        # translates fields to a where stmt so we now what args and tables we need to give up in sql
         def input_field(_field: str, _stmt: str = ""):
-            if self.field_contains_table(_field):
+            if isinstance(_field, Field):
+                _field = str(_field)
                 table, field_name = _field.split(".")
                 sql_information["tables"].add(table)
                 sql_information["where_stmt"] += f" {field_name} {_stmt}"
@@ -130,6 +129,7 @@ class SqliteDriver(IDriver):
                 sql_information["args"].append(_field)
                 sql_information["where_stmt"] += f" ? {_stmt}"
 
+        # loop until there are no more fields left
         while fields:
             field1: str = fields.pop(0)
             field2: str = fields.pop(0)
@@ -142,11 +142,14 @@ class SqliteDriver(IDriver):
             else:
                 input_field(field2)
 
+        # check if there is a where stmt else make the stmt empty
         sql_information["where_stmt"] = (
             f" WHERE {sql_information['where_stmt']}"
             if sql_information["where_stmt"]
             else ""
         )
+
+        # make a list out of the set, we were using a set, so we can't join the same table more than once
         sql_information["tables"] = list(sql_information["tables"])
 
         return sql_information
