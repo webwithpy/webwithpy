@@ -29,6 +29,9 @@ class Response:
             self.contents.append(str(content))
 
     def parse_template(self, template: Union[str, PathLike], **kwargs):
+        """
+        will parse the template with htpyp
+        """
         lexer = Lexer()
         tokens = lexer.lex_file(template)
         parser = DefaultParser(tokens)
@@ -48,31 +51,50 @@ class Response:
         self.cookies[cookie_name] = cookie_value
 
     def encode(self):
+        """
+        encode the response with utf-8, so we can send it over http/https
+        """
         return self.build_response().encode("utf-8")
 
     def build_response(self) -> str:
-        response: str = f"HTTP/{self.http_version} 200 OK\nContent-Type: {self.content_type}\n"
+        """
+        builds an HTTP request that we can send to the user.
+        """
+        response: str = (
+            f"HTTP/{self.http_version} 200 OK\nContent-Type: {self.content_type}\n"
+        )
 
         for k, v in self.headers.items():
             response += f"{k}: {v}\n"
 
         for k, v in self.cookies.items():
-            self.cookies[k] = str(v).replace('\r', '')
+            self.cookies[k] = str(v).replace("\r", "")
 
-        response += f"Set-Cookie: {';'.join([f'{k}={v}' for k, v in self.cookies.items()])}"
+        for name, value in self.cookies.items():
+            # Max-Age of all cookies is currently required, this will be change after 1.0
+            response += f"Set-Cookie {name}={value}; Max-Age=86400\n"
+
         response += "\n\n"
         response += "\n".join(self.contents)
 
         return response
 
     def generate_error(self, code=500):
+        """
+        the only errors we currently support is or 500 or 404
+        """
         self.headers = {}
         self.contents = []
 
         if code == 500:
-            return f"HTTP/{self.http_version} 500 SERVER ERROR\n\n<h1>SERVER ERROR!</h1>"
+            return (
+                f"HTTP/{self.http_version} 500 SERVER ERROR\n\n<h1>SERVER ERROR!</h1>"
+            )
 
         return f"HTTP/{self.http_version} 404 NOT FOUND\n\n<h1>PAGE NOT FOUND!</h1>"
 
     def use_json(self):
+        """
+        NOT IMPLEMENTED YET, TODO!
+        """
         self.content_type = "text/json"
