@@ -1,11 +1,11 @@
-from setuptools import setup
-from Cython.Build import cythonize
-from distutils.command.build_ext import build_ext
+from Cython.Build import build_ext, cythonize
 
-setup(
-    name="cacher",
-    ext_modules=cythonize(
-        "webwithpy/orm/tools/cacher.pyx", compiler_directives={"linetrace": True}
-    ),
-    cmdclass={"build_ext": build_ext},
-)
+
+def build(setup_kwargs: dict):
+    setup_kwargs.update(
+        ext_modules=cythonize(
+            "webwithpy/orm/tools/cacher.pyx",
+            compiler_directives={"linetrace": True},
+        ),
+        cmdclass={"build_ext": build_ext},
+    )
