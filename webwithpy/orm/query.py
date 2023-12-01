@@ -1,7 +1,6 @@
 from __future__ import annotations
 from .tools import cacher
 import bcrypt
-import copy
 
 # Add everything for type checking
 from typing import TYPE_CHECKING

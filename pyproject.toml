@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "webwithpy"
+build = "build.py"
+readme = "README.md"
 version = "0.5"
 description = ""
 authors = ["Sven Keimpema"]
-readme = "README.md"
 packages = [{include = "webwithpy/**/*.*", format = "sdist"}]
 
 [tool.poetry.dependencies]
