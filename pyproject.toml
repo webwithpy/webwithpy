@@ -16,5 +16,5 @@ bcrypt = "^3.2.0"
 setuptools = "^69.0.2"
 
 [build-system]
-requires = ["poetry-core", "cython"]
+requires = ["poetry-core", "cython", "setuptools"]
 build-backend = "poetry.core.masonry.api"
