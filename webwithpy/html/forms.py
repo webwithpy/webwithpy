@@ -392,7 +392,7 @@ class InputForm(FormTools):
         self.table_name = self.table.table_name
         self.fields = fields
         self.form_controller = form_controller
-        self.form_data = None
+        self.form_data: dict[str:str] = {}
         self.accepted = False
         self.error_msg = ""
 

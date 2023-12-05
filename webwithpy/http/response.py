@@ -9,7 +9,12 @@ class Response:
     def __init__(self, session):
         self.http_version: str = "1.1"
         self.content_type: str = "text/html"
-        self.headers = {}
+
+        # default headers
+        self.headers = {
+            "Cache-Control": "max-age=0, no-cache, must-revalidate, proxy-revalidate"
+        }
+
         self.contents = []
         self.cache = {}
         self.cookies = {"session": session}
@@ -72,7 +77,7 @@ class Response:
 
         for name, value in self.cookies.items():
             # Max-Age of all cookies is currently required, this will be change after 1.0
-            response += f"Set-Cookie {name}={value}; Max-Age=86400\n"
+            response += f"Set-Cookie: {name}={value}; Max-Age=86400\n"
 
         response += "\n\n"
         response += "\n".join(self.contents)

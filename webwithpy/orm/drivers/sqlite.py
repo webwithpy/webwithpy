@@ -78,7 +78,7 @@ class SqliteDriver(IDriver):
             self._update(
                 first_table=sql_information["tables"][0],
                 update_vals=update_vals,
-                where=sql_information["where"],
+                where=sql_information["where_stmt"],
             ),
             sql_information["args"],
         )

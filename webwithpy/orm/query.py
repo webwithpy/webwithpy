@@ -53,7 +53,7 @@ class Query:
             if field.encrypt:
                 kwargs[field.field_name] = bcrypt.hashpw(
                     password=kwargs[field.field_name].encode(),
-                    salt=bcrypt.gensalt(rounds=4),
+                    salt=bcrypt.gensalt(rounds=8),
                 )
 
         self.cursor.execute(sql, tuple(kwargs.values()))
@@ -91,7 +91,6 @@ class Query:
                 return value
 
         # execute the sql
-        print(sql)
         return self.cursor.execute(sql, args).fetchall()
 
     def update(self, **kwargs):

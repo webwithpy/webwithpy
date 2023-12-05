@@ -30,6 +30,7 @@ class HTTPHandler:
         Handles the client request by setting cookies, finding the function by the clients path and sending a request
         back
         """
+
         self.server = server
         self.client = client
         self.writer = writer
