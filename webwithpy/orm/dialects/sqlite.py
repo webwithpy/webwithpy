@@ -5,22 +5,21 @@ from ..query import Query
 class SqliteDialect(SQLDialect):
     @classmethod
     def unpack(cls, query: Query) -> dict:
-        unpacked_query = {'fields': [], 'stmts': []}
+        """
+        unpacks a sqlite query statement
+        """
+        unpacked_query = {"fields": [], "stmts": []}
 
-        if isinstance(query.first, Query):
-            unpacked = cls.unpack(query.first)
-            unpacked_query['fields'] += unpacked['fields']
-            unpacked_query['stmts'] += unpacked['stmts']
-        else:
-            unpacked_query['fields'].append(query.first)
+        def _unpack(part):
+            if isinstance(part, Query):
+                unpacked = cls.unpack(part)
+                unpacked_query["fields"] += unpacked["fields"]
+                unpacked_query["stmts"] += unpacked["stmts"]
+            else:
+                unpacked_query["fields"].append(part)
 
-        unpacked_query['stmts'].append(query.operator)
-
-        if isinstance(query.second, Query):
-            unpacked = cls.unpack(query.second)
-            unpacked_query['fields'] += unpacked['fields']
-            unpacked_query['stmts'] += unpacked['stmts']
-        else:
-            unpacked_query['fields'].append(query.second)
+        _unpack(query.first)
+        unpacked_query["stmts"].append(query.operator)
+        _unpack(query.second)
 
         return unpacked_query

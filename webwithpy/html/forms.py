@@ -256,7 +256,7 @@ class SQLForm(FormTools):
 
         return insert_html.__str__()
 
-    def view_form(self, idx):
+    def view_form(self, idx: int):
         """
         form where you can view a sql row(you can't edit anything here!), also not really a form, only a div
         """

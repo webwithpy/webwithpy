@@ -48,14 +48,18 @@ class HTTPHandler:
 
         #  try to find the function by the request path
         try:
-            func_out, html_template = await self.call_func_by_route(
+            func_out, html_template, content_type = await self.call_func_by_route(
                 App.request.path, App.request.method
             )
+
+            self.resp.content_type = content_type
 
             # make sure we never send any data with the response is 404(DON'T REMOVE CAN LEAK DATA IF REMOVED)
             if isinstance(func_out, RouteNotFound):
                 return
             elif App.redirect is not None:
+                # function is only protected for people who use the framework, the framework itself can always call
+                # protected functions
                 await self.send_response(App.redirect._to_http())
                 return
             self.resp.add_content(func_out, html_template)
@@ -86,15 +90,19 @@ class HTTPHandler:
             await self.send_response(self.resp.generate_error(404))
             return RouteNotFound(route, method), None
 
+        # we will need to awaut the routed function if it is async!
         if self.async_func(routed_data.func):
             return (
                 await routed_data.func(*routed_data.args, **routed_data.kwargs),
                 routed_data.html_template,
+                routed_data.content_type,
             )
 
+        # run routed function no async
         return (
             routed_data.func(*routed_data.args, **routed_data.kwargs),
             routed_data.html_template,
+            routed_data.content_type,
         )
 
     async def send_response(self, resp: bytes | str = b""):
