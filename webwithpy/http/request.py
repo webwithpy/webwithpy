@@ -14,9 +14,17 @@ class Request:
         )
         # ALL FORM DATA IS ONLY ACCEPTED VIA <form method="POST">!!
         self.form_data: dict = req_header_as_dict.get("form_data", {})
+
+        # Type of the connection send to the user
         self.connection_type = req_header_as_dict.get("Connection", "?!")
+
+        # how much content is send
         self.content_length = req_header_as_dict.get("Content-Length", "/")
+
+        # where the content came from
         self.origin = req_header_as_dict.get("Origin", None)
+
+        # cookies and path
         self.method = self.parse_method(req_header_as_dict.get("path", "ANY"))
         self.cookies = self.parse_cookies(req_header_as_dict.get("Cookie", ""))
 
@@ -93,11 +101,13 @@ class Request:
         return host_header.split(" ")[1]
 
     @classmethod
-    def HTTP_type(cls, path_header):
+    def HTTP_type(cls, path_header: str) -> str:
+        print(path_header)
+        # type of the http used
         return path_header.split(" ")[1]
 
     @classmethod
-    def parse_cookies(cls, cookies_as_str: str):
+    def parse_cookies(cls, cookies_as_str: str) -> dict:
         if len(cookies_as_str) == 0:
             return {}
 
@@ -110,16 +120,19 @@ class Request:
         return cookies_dict
 
     @classmethod
-    def vars_to_dict(cls, kwargs: str):
+    def vars_to_dict(cls, kwargs: str) -> dict:
+        """
+        turns http variables to dict
+        """
         if len(kwargs) == 0:
             return {}
 
         # vars dict
-        v_d = {}
+        var_dict = {}
         items = kwargs.split("&")
         for item in items:
             # key, value
             k, v = item.split("=")
-            v_d[k] = v
+            var_dict[k] = v
 
-        return v_d
+        return var_dict

@@ -10,37 +10,67 @@ def check_path_exists(func: Callable, route: str):
         raise RouteFound(route, method=func, defined_method=route_data.func)
 
 
-def GET(url="/", template=""):
+def GET(url="/", template="", content_type=""):
     url = fix_url(url)
 
     def inner(func, *args, **kwargs):
         check_path_exists(func, url)
-        Router.routes.append(RouteData(func=func, url=url, method="GET", template=template, *args, **kwargs))
+        Router.routes.append(
+            RouteData(
+                func=func,
+                url=url,
+                method="GET",
+                template=template,
+                content_type=content_type,
+                *args,
+                **kwargs,
+            )
+        )
 
     return inner
 
 
-def POST(url="/", template=""):
+def POST(url="/", template="", content_type=""):
     url = fix_url(url)
 
     def inner(func, *args, **kwargs):
         check_path_exists(func, url)
-        Router.routes.append(RouteData(func=func, url=url, method="POST", template=template, *args, **kwargs))
+        Router.routes.append(
+            RouteData(
+                func=func,
+                url=url,
+                method="POST",
+                template=template,
+                content_type=content_type,
+                *args,
+                **kwargs,
+            )
+        )
 
     return inner
 
 
-def ANY(url="/", template=""):
+def ANY(url="/", template="", content_type=""):
     url = fix_url(url)
 
     def inner(func, *args, **kwargs):
         check_path_exists(func, url)
-        Router.routes.append(RouteData(func=func, url=url, method="ANY", template=template, *args, **kwargs))
+        Router.routes.append(
+            RouteData(
+                func=func,
+                url=url,
+                method="ANY",
+                template=template,
+                content_type=content_type,
+                *args,
+                **kwargs,
+            )
+        )
 
     return inner
 
 
 def fix_url(url: str):
-    if len(url) == 0 or url[0] != '/':
-        url = f'/{url}'
+    if len(url) == 0 or url[0] != "/":
+        url = f"/{url}"
     return url

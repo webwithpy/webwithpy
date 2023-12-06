@@ -7,12 +7,13 @@ from ..html.renderer import DefaultRenderer
 
 class Response:
     def __init__(self, session):
+        # default headers for the response
         self.http_version: str = "1.1"
         self.content_type: str = "text/html"
 
-        # default headers
+        # necessary headers
         self.headers = {
-            "Cache-Control": "max-age=0, no-cache, must-revalidate, proxy-revalidate"
+            "Cache-Control": "max-age=0, no-cache, must-revalidate, proxy-revalidate",
         }
 
         self.contents = []
@@ -20,6 +21,9 @@ class Response:
         self.cookies = {"session": session}
 
     def add_content(self, content: Any, template: Union[str, PathLike] = ""):
+        """
+        function will add any content given the user based on if he gave-up a template
+        """
         if template != "":
             if not isinstance(content, dict):
                 content = {}
@@ -53,6 +57,7 @@ class Response:
         self.headers[header_name] = header_value
 
     def add_cookie(self, cookie_name, cookie_value):
+        """sets a cookie that will be added when building and encoding the resp"""
         self.cookies[cookie_name] = cookie_value
 
     def encode(self):
@@ -97,9 +102,3 @@ class Response:
             )
 
         return f"HTTP/{self.http_version} 404 NOT FOUND\n\n<h1>PAGE NOT FOUND!</h1>"
-
-    def use_json(self):
-        """
-        NOT IMPLEMENTED YET, TODO!
-        """
-        self.content_type = "text/json"
