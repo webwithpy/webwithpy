@@ -62,16 +62,16 @@ class HTTPHandler:
                 # protected functions
                 await self.send_response(App.redirect._to_http())
                 return
-            self.resp.add_content(func_out, html_template)
+            self.resp._add_content(func_out, html_template)
         except Exception as e:
             # it is possible that a response
-            await self.send_response(self.resp.generate_error(500))
+            await self.send_response(self.resp._generate_error(500))
             traceback.print_exception(e)
             return
 
         # only send response after try catch bc if something goes wrong while sending the response it will give
         # a completely different exception
-        await self.send_response(self.resp.encode())
+        await self.send_response(self.resp._encode())
 
     async def call_func_by_route(self, route, method):
         """
@@ -87,7 +87,7 @@ class HTTPHandler:
             )
 
             # send a 404 not found back because the path->method->function was not found!
-            await self.send_response(self.resp.generate_error(404))
+            await self.send_response(self.resp._generate_error(404))
             return RouteNotFound(route, method), None, None
 
         # we will need to awaut the routed function if it is async!

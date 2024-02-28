@@ -8,6 +8,7 @@ nav:
   - Templating: templating.md
   - Routing: routing.md
   - Grids: grids.md
+  - App: app.md
 
 theme:
   name: mkdocs

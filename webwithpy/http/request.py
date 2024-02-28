@@ -8,8 +8,8 @@ class Request:
     """
 
     def __init__(self, req_header: str):
-        req_header_as_dict = self.headers_to_dict(req_header)
-        self.path, self.vars = self.parse_path(
+        req_header_as_dict = self._headers_to_dict(req_header)
+        self.path, self.vars = self._parse_path(
             req_header_as_dict.get("path", "GET / HTTP/1.1")
         )
         # ALL FORM DATA IS ONLY ACCEPTED VIA <form method="POST">!!
@@ -25,11 +25,11 @@ class Request:
         self.origin = req_header_as_dict.get("Origin", None)
 
         # cookies and path
-        self.method = self.parse_method(req_header_as_dict.get("path", "ANY"))
-        self.cookies = self.parse_cookies(req_header_as_dict.get("Cookie", ""))
+        self.method = self._parse_method(req_header_as_dict.get("path", "ANY"))
+        self.cookies = self._parse_cookies(req_header_as_dict.get("Cookie", ""))
 
     @classmethod
-    def headers_to_dict(cls, full_header: str) -> dict:
+    def _headers_to_dict(cls, full_header: str) -> dict:
         """
         makes so that a given header is turned into a dictionary
         """
@@ -43,7 +43,7 @@ class Request:
                 if "GET" in split_header[0] or "POST" in split_header[0]:
                     header_dict["path"] = split_header[0]
                 elif "=" in split_header[0]:
-                    header_dict["form_data"] = cls.extract_vars_from_path(
+                    header_dict["form_data"] = cls._extract_vars_from_path(
                         split_header[0]
                     )
                 continue
@@ -58,7 +58,7 @@ class Request:
         return header_dict
 
     @classmethod
-    def parse_method(cls, path_header: str):
+    def _parse_method(cls, path_header: str):
         """
         I know PUT also exists however it is not supported(at least not before 1.0)
         :param path_header: example 'GET / HTTP/1.1'
@@ -67,7 +67,7 @@ class Request:
         return "GET" if "GET" in path_header else "POST"
 
     @classmethod
-    def extract_vars_from_path(cls, variable_side_path: str) -> dict:
+    def _extract_vars_from_path(cls, variable_side_path: str) -> dict:
         """
         variable side path is everything after the ? in 127.0.0.1:8000/test?var1=1
         aka variable side path is in this case 'var1=1'
@@ -81,7 +81,7 @@ class Request:
         }
 
     @classmethod
-    def parse_path(cls, path_header: str):
+    def _parse_path(cls, path_header: str):
         """
         :param path_header: example 'GET / HTTP/1.1'
         :return: url true path
@@ -91,23 +91,22 @@ class Request:
         if len(path_split) == 1:
             return path_split[0], {}
 
-        return [path_split[0], cls.vars_to_dict(path_split[1])]
+        return [path_split[0], cls._vars_to_dict(path_split[1])]
 
     @classmethod
-    def parse_host(cls, host_header: str):
+    def _parse_host(cls, host_header: str):
         """
         get where url of the client
         """
         return host_header.split(" ")[1]
 
     @classmethod
-    def HTTP_type(cls, path_header: str) -> str:
-        print(path_header)
+    def _HTTP_type(cls, path_header: str) -> str:
         # type of the http used
         return path_header.split(" ")[1]
 
     @classmethod
-    def parse_cookies(cls, cookies_as_str: str) -> dict:
+    def _parse_cookies(cls, cookies_as_str: str) -> dict:
         if len(cookies_as_str) == 0:
             return {}
 
@@ -120,7 +119,7 @@ class Request:
         return cookies_dict
 
     @classmethod
-    def vars_to_dict(cls, kwargs: str) -> dict:
+    def _vars_to_dict(cls, kwargs: str) -> dict:
         """
         turns http variables to dict
         """
