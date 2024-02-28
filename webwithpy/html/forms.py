@@ -241,14 +241,14 @@ class SQLForm(FormTools):
         insert_html = Form(
             *[
                 Input(
-                    _name=field_name,
+                    _name=field.field_name,
                     _type=self.get_field_type(
-                        self.db, self.query.table_name, field_name
+                        self.db, self.query.table_name, field.field_name
                     ),
-                    placeholder=field_name,
+                    placeholder=field.field_text or field.field_name,
                 ).__str__()
-                for field_name in self.db.tables[self.query.table_name].fields.keys()
-                if field_name != "id"
+                for field in self.db.tables[self.query.table_name].fields.values()
+                if field.field_name != "id"
             ],
             Div(self.back_button(), self.submit_button()),
             action=url(App.request.path, jwt=jwt_encoded),
@@ -430,11 +430,11 @@ class InputForm(FormTools):
             + Form(
                 *[
                     Input(
-                        _name=field.field_text or field.field_name,
+                        _name=field.field_name,
                         _type=self.get_field_type(
                             self.db,
                             self.table_name,
-                            field.field_text or field.field_name,
+                            field.field_name,
                         ),
                         placeholder=field.field_text or field.field_name,
                     ).__str__()
