@@ -129,7 +129,7 @@ class Auth(AuthValidator):
         form = InputForm(
             self.db.auth_user,
             form_controller=self.register_form_controller,
-            fields=["username", "email", "password", "password_two"],
+            exclude_fields=["uuid"],
         )
 
         # register user and log him in if the form is validated correctly

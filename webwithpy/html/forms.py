@@ -46,7 +46,7 @@ class FormTools:
         submits form information
         """
         return Input(
-            _type="submit", _class="button btn btn-default btn-secondary insert"
+            _value="submit", _type="submit", _class="button btn btn-default btn-secondary insert"
         )
 
     @classmethod
@@ -386,10 +386,17 @@ class InputForm(FormTools):
     form with input fields that can be submitted
     """
 
-    def __init__(self, table: Table, form_controller=None, fields: list = None):
+    def __init__(
+        self,
+        table: Table,
+        form_controller=None,
+        exclude_fields: list = None,
+        fields: list = None,
+    ):
         self.table = table
         self.db = self.table.db
         self.table_name = self.table.table_name
+        self.exclude_fields = exclude_fields
         self.fields = fields
         self.form_controller = form_controller
         self.form_data: dict[str:str] = {}
@@ -430,7 +437,7 @@ class InputForm(FormTools):
                         if not self.fields
                         else self.fields
                     )
-                    if field_name != "id"
+                    if field_name != "id" and field_name not in self.exclude_fields
                 ],
                 P(text=self.error_msg, style="color: red;") if self.error_msg else "",
                 Div(self.submit_button()),
