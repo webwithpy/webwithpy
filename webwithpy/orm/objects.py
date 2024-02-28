@@ -5,7 +5,7 @@ from typing import Dict
 
 class Field:
     def __init__(
-        self, field_text: str = "", field_type: str = "int", encrypt: bool = False
+        self, field_type: str = "int", field_text: str = "", encrypt: bool = False
     ):
         """
         :param field_text: Text of the field when it's displayed in for example Html
