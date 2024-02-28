@@ -158,6 +158,34 @@ Removing fields from the table works very similar to updating fields in the tabl
 the fields you want to change because you are removing them. Below here is a simple example of how to remove fields from
 an table
 
-```python
+```pythonAuthUser
 (db.user.id < 10).delete()
+```
+ 
+## Using auth
+Currently, if you want to use the build in wwp auth you will need to import `from webwithpy.orm.auths import Auth`
+Using the auth table will go like this:
+```python
+from webwithpy.orm import DB
+from webwithpy.orm.auths import Auth
+
+if __name__ == "__main__":
+    db = DB()
+    auth = Auth()
+```
+This will automatically expose 2 different routes that you can customize by giving it up as a key argument with Auth()
+For example `auth = Auth(login_url="{url}", register_url="url")`
+ 
+## Customizing the auth
+Customizing the auth isn't fully done yet and there are some key requirements, firstly the Auth table will need the 
+fields email and password, secondly it will need another field named uuid.
+Under here is a example of all the required fields:
+```python
+from webwithpy.orm import Table, Field
+
+class AuthUser(Table):
+    email = Field("string")
+    password = Field("string", encrypt=True)
+    password_two = Field("string", encrypt=True)
+    uuid = Field("string")
 ```

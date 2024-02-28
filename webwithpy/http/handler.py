@@ -88,7 +88,7 @@ class HTTPHandler:
 
             # send a 404 not found back because the path->method->function was not found!
             await self.send_response(self.resp.generate_error(404))
-            return RouteNotFound(route, method), None
+            return RouteNotFound(route, method), None, None
 
         # we will need to awaut the routed function if it is async!
         if self.async_func(routed_data.func):

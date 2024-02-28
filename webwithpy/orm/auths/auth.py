@@ -4,6 +4,7 @@ from ...routing.router import Router
 from ..objects import Table, Field
 from ..db import DB
 from ...app import App
+from typing import Type
 import bcrypt
 import re
 
@@ -80,12 +81,18 @@ class Auth(AuthValidator):
     creates auth tables and forms
     """
 
-    def __init__(self, min_pass_len: int = 4):
+    def __init__(
+        self,
+        auth_table: Type[Table] = AuthUser,
+        min_pass_len: int = 4,
+        login_url: str = "/login",
+        registration_url: str = "/register",
+    ):
         self.db = DB()
-        self.db.create_table(AuthUser)
+        self.db.create_table(auth_table)
         super().__init__(self.db, min_pass_len)
-        Router.add_route(self.login_form, url="/login", method="ANY")
-        Router.add_route(self.register_form, url="/register", method="ANY")
+        Router.add_route(self.login_form, url=login_url, method="ANY")
+        Router.add_route(self.register_form, url=registration_url, method="ANY")
 
     def login_form(self):
         """
