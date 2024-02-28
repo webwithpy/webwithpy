@@ -186,6 +186,5 @@ from webwithpy.orm import Table, Field
 class AuthUser(Table):
     email = Field("string")
     password = Field("string", encrypt=True)
-    password_two = Field("string", encrypt=True)
     uuid = Field("string")
 ```

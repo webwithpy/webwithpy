@@ -12,11 +12,10 @@ import re
 # Tqble for authentication
 class AuthUser(Table):
     table_name = "auth_user"
-    username = Field("string")
-    email = Field("string")
-    password = Field("string", encrypt=True)
-    password_two = Field("string", encrypt=True)
-    uuid = Field("string")
+    username = Field(field_text="name", field_type="string")
+    email = Field(field_type="string")
+    password = Field(field_type="string", encrypt=True)
+    uuid = Field(field_type="string")
 
 
 class AuthValidator:
@@ -57,9 +56,6 @@ class AuthValidator:
             or len(form_data["password"]) < self.min_pass_len
         ):
             form.error_msg = f"length of password should at least be greater or equal to {self.min_pass_len}"
-            return False
-        if form_data["password"] != form_data["password_two"]:
-            form.error_msg = "passwords don't match!"
             return False
         return True
 

@@ -4,13 +4,21 @@ from typing import Dict
 
 
 class Field:
-    def __init__(self, field_type, encrypt: bool = False):
+    def __init__(
+        self, field_text: str = "", field_type: str = "int", encrypt: bool = False
+    ):
+        """
+        :param field_text: Text of the field when it's displayed in for example Html
+        :param field_type: Type of the field in sqlite
+        :param encrypt: Whether the field is encrypted or not, required for passwords!
+        """
         self.db = None
         self.conn = None
         self.cursor = None
         self.driver = None
         self.table_name = ""
         self.field_name = ""
+        self.field_text = field_text
         self.field_type = self._translate_type(field_type)
         self.cache = False
         self.encrypt = encrypt
