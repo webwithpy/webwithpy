@@ -17,6 +17,9 @@ class DB:
     url = None
 
     def __init__(self, db_path: str = None):
+        """
+        creates the necessary variables and database
+        """
         if db_path:
             driver, db_path = db_path.split(":/")
         else:
@@ -44,6 +47,9 @@ class DB:
         self.exec_sql("PRAGMA foreign_keys = ON;")
 
     def exec_sql(self, sql: str):
+        """
+        execute sql string
+        """
         return self.cursor.execute(sql)
 
     def create_table(self, table: Table | Type[Table]):
@@ -141,6 +147,7 @@ class DB:
         try:
             return super(DB, self).__getattribute__(item)
         except Exception as e:
+            # return a table if the previous __getattribute__ failed
             if item in DB.tables.keys():
                 return DB.tables[item]
             raise e

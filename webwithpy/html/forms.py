@@ -46,7 +46,9 @@ class FormTools:
         submits form information
         """
         return Input(
-            _type="submit", _class="button btn btn-default btn-secondary insert"
+            _value="submit",
+            _type="submit",
+            _class="button btn btn-default btn-secondary insert",
         )
 
     @classmethod
@@ -242,14 +244,14 @@ class SQLForm(FormTools):
         insert_html = Form(
             *[
                 Input(
-                    _name=field_name,
+                    _name=field.field_name,
                     _type=self.get_field_type(
-                        self.db, self.query.table_name, field_name
+                        self.db, self.query.table_name, field.field_name
                     ),
-                    placeholder=field_name,
+                    placeholder=field.field_text or field.field_name,
                 ).__str__()
-                for field_name in self.db.tables[self.query.table_name].fields.keys()
-                if field_name != "id"
+                for field in self.db.tables[self.query.table_name].fields.values()
+                if field.field_name != "id"
             ],
             Div(self.back_button(), self.submit_button()),
             action=url(App.request.path, jwt=jwt_encoded),
@@ -259,7 +261,7 @@ class SQLForm(FormTools):
 
         return insert_html.__str__()
 
-    def view_form(self, idx):
+    def view_form(self, idx: int):
         """
         form where you can view a sql row(you can't edit anything here!), also not really a form, only a div
         """
@@ -389,10 +391,17 @@ class InputForm(FormTools):
     form with input fields that can be submitted
     """
 
-    def __init__(self, table: Table, form_controller=None, fields: list = None):
+    def __init__(
+        self,
+        table: Table,
+        form_controller=None,
+        exclude_fields: list = None,
+        fields: list = None,
+    ):
         self.table = table
         self.db = self.table.db
         self.table_name = self.table.table_name
+        self.exclude_fields = exclude_fields
         self.fields = fields
         self.form_controller = form_controller
         self.form_data: dict[str:str] = {}
@@ -424,16 +433,21 @@ class InputForm(FormTools):
             + Form(
                 *[
                     Input(
-                        _name=field_name,
-                        _type=self.get_field_type(self.db, self.table_name, field_name),
-                        placeholder=field_name,
+                        _name=field.field_name,
+                        _type=self.get_field_type(
+                            self.db,
+                            self.table_name,
+                            field.field_name,
+                        ),
+                        placeholder=field.field_text or field.field_name,
                     ).__str__()
-                    for field_name in (
-                        self.db.tables[self.table_name].fields.keys()
+                    for field in (
+                        self.db.tables[self.table_name].fields.values()
                         if not self.fields
                         else self.fields
                     )
-                    if field_name != "id"
+                    if field.field_name != "id"
+                    and field.field_name not in self.exclude_fields
                 ],
                 P(text=self.error_msg, style="color: red;") if self.error_msg else "",
                 Div(self.submit_button()),

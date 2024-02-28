@@ -4,13 +4,21 @@ from typing import Dict
 
 
 class Field:
-    def __init__(self, field_type, encrypt: bool = False):
+    def __init__(
+        self, field_type: str = "int", field_text: str = "", encrypt: bool = False
+    ):
+        """
+        :param field_text: Text of the field when it's displayed in for example Html
+        :param field_type: Type of the field in sqlite
+        :param encrypt: Whether the field is encrypted or not, required for passwords!
+        """
         self.db = None
         self.conn = None
         self.cursor = None
         self.driver = None
         self.table_name = ""
         self.field_name = ""
+        self.field_text = field_text
         self.field_type = self._translate_type(field_type)
         self.cache = False
         self.encrypt = encrypt
@@ -144,6 +152,9 @@ class Table:
         self.caching = caching
 
     def insert(self, **values):
+        """
+        db.table_name.insert aka inserts data into the db
+        """
         Query(
             db=self.db,
             conn=self.conn,
@@ -155,6 +166,9 @@ class Table:
         ).insert(**values)
 
     def select(self, *fields, distinct=False, orderby=None):
+        """
+        selects all rows by the table
+        """
         return Query(
             db=self.db,
             cursor=self.cursor,
@@ -165,6 +179,9 @@ class Table:
         ).select(*fields, distinct=distinct, orderby=orderby)
 
     def update(self, **kwargs):
+        """
+        updates all the fields in the db
+        """
         return Query(
             db=self.db,
             cursor=self.cursor,
@@ -176,9 +193,13 @@ class Table:
 
     def __getattribute__(self, item):
         try:
+            # check if the user is getting a function por a variable
             return super(Table, self).__getattribute__(item)
         except Exception as e:
+            # if the previous check failed where going to check if the call is equal to a name of an field
+            # if yes we want to return that field
             if item in self.fields.keys():
                 return self.fields[item]
 
+            # raise if nothing found
             raise e

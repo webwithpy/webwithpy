@@ -94,24 +94,30 @@ class Query:
         return self.cursor.execute(sql, args).fetchall()
 
     def update(self, **kwargs):
+        # remove table from cache if we are caching tables
         if self.using_cache:
             cacher.remove_table_cache(self.table_name)
 
+        # get update statement and args from query
         sql, args = self.driver.update(query=self, **kwargs)
 
         self.cursor.execute(sql, list(kwargs.values()) + args)
         self.conn.commit()
 
     def delete(self):
+        # remove table from cache if we are caching tables
         if self.using_cache:
             cacher.remove_table_cache(self.table_name)
 
+        # get delete statement from driver
         sql, args = self.driver.delete(query=self)
 
+        # execute sql
         self.cursor.execute(sql, args)
         self.conn.commit()
 
     def __and__(self, other):
+        # make it so we can use logic on queries
         return Query(
             db=self.db,
             conn=self.conn,
@@ -125,6 +131,7 @@ class Query:
         )
 
     def __or__(self, other):
+        # make it so we can use logic on queries
         return Query(
             db=self.db,
             conn=self.conn,

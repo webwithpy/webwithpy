@@ -1,13 +1,13 @@
 class SQLDialect:
-    equals = '='
-    and_ = 'AND'
-    or_ = 'OR'
-    neq = '!='
-    lt = '<'
-    le = '<='
-    gt = '>'
-    ge = '>='
+    """
+    default sql dialect
+    """
 
-    @classmethod
-    def sql_str(cls, value):
-        return f"'{value}'"
+    equals = "="
+    and_ = "AND"
+    or_ = "OR"
+    neq = "!="
+    lt = "<"
+    le = "<="
+    gt = ">"
+    ge = ">="
