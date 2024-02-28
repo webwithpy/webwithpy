@@ -83,7 +83,9 @@ class Auth(AuthValidator):
         min_pass_len: int = 4,
         login_url: str = "/login",
         registration_url: str = "/register",
+        pretty_form: bool = False,
     ):
+        self.pretty_form = pretty_form
         self.db = DB()
         self.db.create_table(auth_table)
         super().__init__(self.db, min_pass_len)
@@ -96,8 +98,14 @@ class Auth(AuthValidator):
         """
         if self.logged_in():
             return Redirect("/")
-
-        form = InputForm(self.db.auth_user, fields=["email", "password"])
+        form = None
+        if self.pretty_form:
+            form = InputForm(
+                self.db.auth_user,
+                fields=["email", "password"],
+            )
+        else:
+            form = InputForm(self.db.auth_user, fields=["email", "password"])
 
         # logic if form is accepted
         if form.accepted:

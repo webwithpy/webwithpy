@@ -52,20 +52,32 @@ class FormTools:
         )
 
     @classmethod
-    def default_styling(cls):
+    def default_styling(cls, custom_css_dir: str = ""):
         """
         default styling for all sql grids
         """
-        return f"""
-            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-            <link rel="stylesheet" 
-            href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.1.2/build/styles/default.min.css">
-            <style type="text/css" media="screen">
-                {pkgutil.get_data(__name__, "../static/form.css").decode()}
-            </style>
-        """
+        default_links = """
+                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+                <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+                <link rel="stylesheet" 
+                href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.1.2/build/styles/default.min.css">
+             """
+
+        if custom_css_dir:
+            default_links += (
+                "<style type='text/css' media='screen'>"
+                f" {pkgutil.get_data(__name__, custom_css_dir).decode()}"
+                " </style>"
+            )
+        else:
+            default_links += (
+                "<style type='text/css' media='screen'>"
+                f" {pkgutil.get_data(__name__, '../static/form.css').decode()}"
+                " </style>"
+            )
+
+        return default_links
 
     @classmethod
     def get_field_type(cls, db: DB, table_name: str, field_name: str):
@@ -122,7 +134,11 @@ class SQLForm(FormTools):
 
         # get all the names of the fields, normally a field is something like table.field_name
         # however in this case we only want field_name, that's why we remove the table name
-        self.fields = [str(field).split(".")[1] for field in fields]
+        if fields:
+            self.fields = [str(field).split(".")[1] for field in fields]
+        else:
+            # way to get all the field names from the table
+            self.fields = self.db.tables[query.table_name].fields.keys()
 
     def as_html(self):
         """
@@ -397,6 +413,7 @@ class InputForm(FormTools):
         form_controller=None,
         exclude_fields: list = None,
         fields: list = None,
+        custom_css_dir: str = "",
     ):
         self.table = table
         self.db = self.table.db
@@ -407,6 +424,7 @@ class InputForm(FormTools):
         self.form_data: dict[str:str] = {}
         self.accepted = False
         self.error_msg = ""
+        self.custom_css_dir = custom_css_dir
 
         self.verify_form_submit()
 
@@ -426,33 +444,44 @@ class InputForm(FormTools):
         else:
             self.accepted = False
 
-    def __str__(self):
+    def GetFields(self):
+        if self.fields:
+            return [
+                field
+                for field in self.db.tables[self.table_name].fields.values()
+                if field.field_name in self.fields
+            ]
+        else:
+            return self.db.tables[self.table_name].fields.values()
+
+    def HtmlInputForm(self) -> str:
         encoded_jwt = self.encode_jwt({"accepted": True})
-        return (
-            self.default_styling()
-            + Form(
-                *[
-                    Input(
-                        _name=field.field_name,
-                        _type=self.get_field_type(
-                            self.db,
-                            self.table_name,
-                            field.field_name,
-                        ),
-                        placeholder=field.field_text or field.field_name,
-                    ).__str__()
-                    for field in (
-                        self.db.tables[self.table_name].fields.values()
-                        if not self.fields
-                        else self.fields
-                    )
-                    if field.field_name != "id"
-                    and field.field_name not in self.exclude_fields
-                ],
-                P(text=self.error_msg, style="color: red;") if self.error_msg else "",
-                Div(self.submit_button()),
-                action=url(App.request.path, jwt=encoded_jwt),
-                method="POST",
-                _class="container",
-            ).__str__()
-        )
+
+        return Form(
+            *[
+                Input(
+                    _name=field.field_name,
+                    _id=field.field_name,
+                    _type=self.get_field_type(
+                        self.db,
+                        self.table_name,
+                        field.field_name,
+                    ),
+                    placeholder=field.field_text or field.field_name,
+                ).__str__()
+                for field in self.GetFields()
+                if field.field_name != "id"
+                and field.field_name not in self.exclude_fields
+            ],
+            P(text=self.error_msg, style="color: red;") if self.error_msg else "",
+            Div(self.submit_button()),
+            action=url(App.request.path, jwt=encoded_jwt),
+            method="POST",
+            _class="container",
+        ).__str__()
+
+    def __str__(self):
+        form = self.HtmlInputForm()
+        if self.custom_css:
+            return form
+        return self.default_styling() + form

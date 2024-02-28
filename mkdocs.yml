@@ -7,6 +7,7 @@ nav:
   - Database orm: database_orm.md
   - Templating: templating.md
   - Routing: routing.md
+  - Grids: grids.md
 
 theme:
   name: mkdocs
