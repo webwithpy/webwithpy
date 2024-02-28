@@ -71,6 +71,9 @@ class FormTools:
         gets the type of fields in html, so we can display it better in html
         """
 
+        if field_name == "password":
+            return "password"
+
         field_type = db.tables[table_name].fields[field_name].field_type
         translation_table = {"IMAGE": "file"}
 
