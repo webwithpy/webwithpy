@@ -46,7 +46,9 @@ class FormTools:
         submits form information
         """
         return Input(
-            _value="submit", _type="submit", _class="button btn btn-default btn-secondary insert"
+            _value="submit",
+            _type="submit",
+            _class="button btn btn-default btn-secondary insert",
         )
 
     @classmethod
