@@ -6,6 +6,9 @@ class CookieJar:
         self.cookies: Dict[str, Any] = {}
 
     def get_http_cookies(self):
+        """
+        sets up the cookies to be sent over http(not encoded!). All cookies are currently Secure and go away after 1 day
+        """
         response = ""
         for name, value in self.cookies.items():
             response += f"Set-Cookie: {name}={value}; Max-Age: 86400; Secure\n"
