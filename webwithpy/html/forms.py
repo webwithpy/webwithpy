@@ -482,6 +482,6 @@ class InputForm(FormTools):
 
     def __str__(self):
         form = self.HtmlInputForm()
-        if self.custom_css:
+        if self.custom_css_dir:
             return form
         return self.default_styling() + form

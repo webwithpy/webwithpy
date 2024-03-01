@@ -37,3 +37,24 @@ def get_cookies():
 if __name__ == "__main__":
     run_server()
 ```
+
+## Redirecting users
+If you want a user to go to a different url when something happens in your program you can use the Redirect function.
+Here's a guide on how to use the Redirect function in you're code
+
+```python
+from webwithpy.http import Redirect
+from webwithpy.routing import GET
+from webwithpy import run_server
+
+@GET('/intro')
+def introduction_page():
+    return 'Welcome!'
+
+@GET('/')
+def redirector():
+    Redirect('/intro')
+
+if __name__ == "__main__":
+    run_server()
+```

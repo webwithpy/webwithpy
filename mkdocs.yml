@@ -9,6 +9,7 @@ nav:
   - Routing: routing.md
   - Grids: grids.md
   - App: app.md
+  - Persistence: persistence.md
 
 theme:
   name: mkdocs

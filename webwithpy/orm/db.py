@@ -1,5 +1,7 @@
+import re
+
 from ..routing.router import Router
-from .objects import Table, Field
+from .objects import Table, Field, DefaultField, ReferencedField
 from sqlite3 import dbapi2 as sqlite
 from pathlib import Path
 from typing import Dict, Type
@@ -71,9 +73,15 @@ class DB:
         }
         table_fields["id"] = id_field
 
+        for field_name, field in table_fields.items():
+            if "reference" in field.field_type:
+                table_fields[field_name] = ReferencedField(field.field_type)
+
         # give all fields the necessary params
         for field_name, field in table_fields.items():
-            self._set_field(field, field_name, table_name, cache)
+            self._set_field(
+                field=field, field_name=field_name, table_name=table_name, cache=cache
+            )
 
         # give the table self so it can exec queries
         table.db = self
@@ -105,7 +113,9 @@ class DB:
         for table in Table.__subclasses__():
             self.create_table(table)
 
-    def _set_field(self, field: Field, field_name: str, table_name: str, cache: bool):
+    def _set_field(
+        self, field: DefaultField, field_name: str, table_name: str, cache: bool
+    ):
         """
         sets the appropriate fields for the Field class
         """
@@ -140,7 +150,7 @@ class DB:
         for field in fields:
             sql += f"{field.field_name} {field.field_type}, "
         sql = sql[:-2] + ")"
-
+        print(sql)
         DB.cursor.execute(sql)
 
     def __getattribute__(self, item):

@@ -1,43 +1,25 @@
 from .dialects.sqlite import SqliteDialect
 from .query import Query
-from typing import Dict
+from typing import Dict, Any
+import re
 
 
-class Field:
-    def __init__(
-        self, field_type: str = "int", field_text: str = "", encrypt: bool = False
-    ):
-        """
-        :param field_text: Text of the field when it's displayed in for example Html
-        :param field_type: Type of the field in sqlite
-        :param encrypt: Whether the field is encrypted or not, required for passwords!
-        """
+class Reference:
+    def __init__(self, start: int, end: int):
+        self.start = start
+        self.end = end
+
+
+class DefaultField:
+    def __init__(self, cache: bool):
         self.db = None
         self.conn = None
         self.cursor = None
         self.driver = None
         self.table_name = ""
         self.field_name = ""
-        self.field_text = field_text
-        self.field_type = self._translate_type(field_type)
-        self.cache = False
-        self.encrypt = encrypt
-
-    def _translate_type(self, field_type):
-        field_type_mapping = {
-            "int": "INTEGER",
-            "string": "VARCHAR(255)",
-            "float": "FLOAT",
-            "bool": "BOOLEAN",
-            "date": "DATE",
-            "datetime": "DATETIME",
-            "time": "TIME",
-            "image": "IMAGE",
-        }
-        sql_type = field_type_mapping.get(field_type.lower(), None)
-        if sql_type is None:
-            return field_type
-        return sql_type
+        self.cache = cache
+        self.encrypt: bool = False
 
     def __str__(self):
         return f"{self.table_name}.{self.field_name}"
@@ -128,6 +110,90 @@ class Field:
             tbl_name=self.table_name,
             using_cache=self.cache,
         )
+
+
+class Field(DefaultField):
+    def __init__(
+        self,
+        field_type: str = "int",
+        field_text: str = "",
+        cache: bool = False,
+        encrypt: bool = False,
+    ):
+        """
+        :param field_text: Text of the field when it's displayed in for example Html
+        :param field_type: Type of the field in sqlite
+        :param encrypt: Whether the field is encrypted or not, required for passwords!
+        """
+        super().__init__(cache)
+
+        self.field_text = field_text
+        self.field_type = self._translate_type(field_type)
+        self.encrypt = encrypt
+
+    def _translate_type(self, field_type):
+        field_type_mapping = {
+            "int": "INTEGER",
+            "string": "VARCHAR(255)",
+            "float": "FLOAT",
+            "bool": "BOOLEAN",
+            "date": "DATE",
+            "datetime": "DATETIME",
+            "time": "TIME",
+            "image": "IMAGE",
+        }
+        sql_type = field_type_mapping.get(field_type.lower(), None)
+        if sql_type is None:
+            return field_type
+        return sql_type
+
+
+class ReferencedField(DefaultField):
+    def __init__(
+        self,
+        reference: str = "",
+        field_text: str = "",
+        display_label: str = "",
+        cache: bool = False,
+    ):
+        """
+        :param reference: String to referenced field for example 'reference table_name.field_name'. Currently only works
+         with ints
+        :param field_text: name of the text that will be displayed in grids
+        :param display_label: label of the column you want to be displaying, this will make it so that you can display
+        different columns in table you are referencing. For example imaging you're referencing id, you can display
+        table_name.name instead of table_name.id
+        """
+        super().__init__(cache)
+
+        reference_data = self._parse_reference(reference)
+        self.field_type = reference_data["field_type"]
+        self.referenced_table = reference_data["table"]
+        self.referenced_field = reference_data["field"]
+        self.display_label = display_label
+        self.field_text = field_text
+
+    @classmethod
+    def _parse_reference(cls, f_reference: str) -> dict[str, str | Any]:
+        ref = cls._get_reference_idx(f_reference)
+        table, field = f_reference[ref.start + len("reference ") : ref.end].split(".")
+
+        # Using regex to replace the reference string
+        pattern = re.compile(r"reference\s+" + re.escape(f"{table}.{field}"))
+        f_reference = pattern.sub(f"INTEGER REFERENCES {table}({field})", f_reference)
+
+        return dict(field_type=f_reference, table=table, field=field)
+
+    @classmethod
+    def _get_reference_idx(cls, f_reference: str) -> Reference:
+        match = re.search(r"reference\s+(\w+\.\w+)", f_reference)
+        if match:
+            start, end = match.span()
+            return Reference(start, end)
+        else:
+            raise Exception(
+                f"{f_reference} table cannot be created due to invalid reference!"
+            )
 
 
 class Table:
