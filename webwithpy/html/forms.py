@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import os.path
+
 from ..app import App
 from ..http import url
 from ..http.redirect import Redirect
-from .pyhtml import Input, Span, Div, H4, H3, P, A, Form
+from .pyhtml import Input, Span, Div, H4, H1, P, A, Form, H3
 import pkgutil
 import jwt
 
@@ -24,7 +26,7 @@ class FormTools:
         """
         return jwt.encode(
             items,
-            App.response.cookies["session"],
+            App.response.get_cookie("session"),
             algorithm="HS256",
         )
 
@@ -36,7 +38,7 @@ class FormTools:
 
         return jwt.decode(
             jwt_str,
-            key=App.response.cookies["session"],
+            key=App.response.get_cookie("session"),
             algorithms=["HS256"],
         )
 
@@ -65,11 +67,19 @@ class FormTools:
              """
 
         if custom_css_dir:
-            default_links += (
-                "<style type='text/css' media='screen'>"
-                f" {pkgutil.get_data(__name__, custom_css_dir).decode()}"
-                " </style>"
-            )
+            try:
+                default_links += (
+                    "<style type='text/css' media='screen'>"
+                    f" {pkgutil.get_data(__name__, custom_css_dir).decode()}"
+                    " </style>"
+                )
+            except FileNotFoundError:
+                with open(custom_css_dir, "r") as f:
+                    default_links += (
+                        "<style type='text/css' media='screen'>"
+                        f" {f.read()}"
+                        " </style>"
+                    )
         else:
             default_links += (
                 "<style type='text/css' media='screen'>"
@@ -410,6 +420,7 @@ class InputForm(FormTools):
     def __init__(
         self,
         table: Table,
+        form_title: str = None,
         form_controller=None,
         exclude_fields: list = None,
         fields: list = None,
@@ -418,13 +429,14 @@ class InputForm(FormTools):
         self.table = table
         self.db = self.table.db
         self.table_name = self.table.table_name
-        self.exclude_fields = exclude_fields
+        self.exclude_fields = exclude_fields or []
         self.fields = fields
         self.form_controller = form_controller
         self.form_data: dict[str:str] = {}
         self.accepted = False
         self.error_msg = ""
         self.custom_css_dir = custom_css_dir
+        self.form_title = form_title
 
         self.verify_form_submit()
 
@@ -457,31 +469,33 @@ class InputForm(FormTools):
     def HtmlInputForm(self) -> str:
         encoded_jwt = self.encode_jwt({"accepted": True})
 
-        return Form(
-            *[
-                Input(
-                    _name=field.field_name,
-                    _id=field.field_name,
-                    _type=self.get_field_type(
-                        self.db,
-                        self.table_name,
-                        field.field_name,
-                    ),
-                    placeholder=field.field_text or field.field_name,
-                ).__str__()
-                for field in self.GetFields()
-                if field.field_name != "id"
-                and field.field_name not in self.exclude_fields
-            ],
-            P(text=self.error_msg, style="color: red;") if self.error_msg else "",
-            Div(self.submit_button()),
-            action=url(App.request.path, jwt=encoded_jwt),
-            method="POST",
-            _class="container",
+        return Div(
+            Form(
+                H1(self.form_title) if self.form_title else "",
+                *[
+                    Input(
+                        _name=field.field_name,
+                        _id=field.field_name,
+                        _type=self.get_field_type(
+                            self.db,
+                            self.table_name,
+                            field.field_name,
+                        ),
+                        placeholder=field.field_text or field.field_name,
+                    ).__str__()
+                    for field in self.GetFields()
+                    if field.field_name != "id"
+                    and field.field_name not in self.exclude_fields
+                ],
+                P(text=self.error_msg, style="color: red;") if self.error_msg else "",
+                Div(self.submit_button()),
+                action=url(App.request.path, jwt=encoded_jwt),
+                method="POST",
+                _class="container",
+            ),
+            _class="wrapper",
         ).__str__()
 
     def __str__(self):
         form = self.HtmlInputForm()
-        if self.custom_css_dir:
-            return form
-        return self.default_styling() + form
+        return self.default_styling(self.custom_css_dir) + form

@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css?family=Bitter');
+
+.wrapper {
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ height: 100vh;
+ background-color: #f8f8f8;
+}
+
+.container h1 {
+  text-align: center;
+  font-size: 40px;
+}
+
+.container {
+ width: 450px;
+ padding: 30px;
+ background: #FFF;
+ border-radius: 10px;
+ box-shadow: 0 0 20px rgba(0, 0, 0, 0.53);
+ font-family: 'Bitter', serif;
+}
+
+.container input[type="text"],
+.container input[type="email"],
+.container input[type="password"] {
+ display: block;
+ box-sizing: border-box;
+ width: 100%;
+ padding: 8px;
+ border-radius: 6px;
+ border: 2px solid #fff;
+ box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.33);
+ margin-bottom: 15px;
+}
+
+.container .insert {
+ background: #2A88AD;
+ width: 100%;
+ outline: none;
+ padding: 8px 20px;
+ border-radius: 40px;
+ color: #fff;
+ text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.12);
+ font-size: 15px;
+ border: 1px solid #257C9E;
+ cursor: pointer;
+ transition: background 0.3s ease;
+}
+
+.container .insert:hover {
+ background: #2A6881;
+}
+
+::placeholder {
+ color: #888;
+ opacity: 1;
+}
+
+.container input:focus {
+ outline: none;
+ box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+}

@@ -98,14 +98,19 @@ class Auth(AuthValidator):
         """
         if self.logged_in():
             return Redirect("/")
-        form = None
+
         if self.pretty_form:
             form = InputForm(
                 self.db.auth_user,
                 fields=["email", "password"],
+                form_title="Login",
+                custom_css_dir="../static/improved_reg_form.css",
             )
         else:
-            form = InputForm(self.db.auth_user, fields=["email", "password"])
+            form = InputForm(
+                self.db.auth_user,
+                fields=["email", "password"],
+            )
 
         # logic if form is accepted
         if form.accepted:
@@ -130,11 +135,20 @@ class Auth(AuthValidator):
         if self.logged_in():
             return Redirect("/")
 
-        form = InputForm(
-            self.db.auth_user,
-            form_controller=self.register_form_controller,
-            exclude_fields=["uuid"],
-        )
+        if self.pretty_form:
+            form = InputForm(
+                self.db.auth_user,
+                form_controller=self.register_form_controller,
+                exclude_fields=["uuid"],
+                form_title="Register",
+                custom_css_dir="../static/improved_reg_form.css",
+            )
+        else:
+            form = InputForm(
+                self.db.auth_user,
+                form_controller=self.register_form_controller,
+                exclude_fields=["uuid"],
+            )
 
         # register user and log him in if the form is validated correctly
         if form.accepted:

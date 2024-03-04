@@ -80,6 +80,24 @@ class Div(HtmlTag):
         return f"<div class={self._class} {self.set_dict_attrs(self.attrs)}>{''.join([tag.__str__() for tag in self.tags])}</div>"
 
 
+class H1(HtmlTag):
+    def __init__(self, text: str = "", **attrs):
+        self.text = text
+        self.attrs = self.set_dict_attrs(attrs)
+
+    def __str__(self):
+        return f"<h1 {self.attrs}>{''.join(self.text)}</h1>"
+
+
+class H2(HtmlTag):
+    def __init__(self, text: str = "", **attrs):
+        self.text = text
+        self.attrs = self.set_dict_attrs(attrs)
+
+    def __str__(self):
+        return f"<h2 {self.attrs}>{''.join(self.text)}</h2>"
+
+
 class H3(HtmlTag):
     def __init__(self, text: str = "", **attrs):
         self.text = text
