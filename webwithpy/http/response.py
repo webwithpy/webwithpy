@@ -54,7 +54,8 @@ class Response:
         """
         function will add any content given the user based on if he gave-up a template
         """
-        if template != "":
+        if template is not None and template != "":
+            print(template)
             if not isinstance(content, dict):
                 content = {}
 

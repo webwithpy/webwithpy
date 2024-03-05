@@ -75,6 +75,8 @@ async def load_clients(
             )
             client_request: str = (await reader.read(2048)).decode()
 
+            print(client_request)
+
             # add request to app
             App.server_path = SERVER_HOST
 

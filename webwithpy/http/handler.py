@@ -1,7 +1,6 @@
 from ..exeptions.RouteExceptions import RouteNotFound
 from ..routing.router import Router
 from ..app import App
-from .redirect import Redirect
 from .request import Request
 from .response import Response
 from asyncio import AbstractEventLoop, StreamWriter
@@ -17,8 +16,8 @@ class HTTPHandler:
         self.server = None
         self.client = None
         self.writer = None
-        App.request = None
         self.resp = None
+        App.request = None
 
     async def handle_client(
         self,
@@ -27,6 +26,7 @@ class HTTPHandler:
         writer: StreamWriter,
         client_request: str,
     ):
+
         self.server = server
         self.client = client
         self.writer = writer
@@ -56,20 +56,26 @@ class HTTPHandler:
 
     async def call_func_by_route(self, route: str, method):
         routed_data = Router.get_data_by_route(route, method)
+
         if routed_data is None:
             return await self.handle_static_file(route, method)
 
         try:
-            if self.async_func(routed_data.func):
-                result = await routed_data.func(*routed_data.args, **routed_data.kwargs)
-            else:
-                result = routed_data.func(*routed_data.args, **routed_data.kwargs)
+            result = await self.call_routed_func(
+                routed_data.func, *routed_data.args, **routed_data.kwargs
+            )
+
             return result, routed_data.html_template, routed_data.content_type
         except Exception as e:
             print(
                 f"Error executing function for route {route} and method {method}: {e}"
             )
             return self.resp._generate_error(500), None, None
+
+    async def call_routed_func(self, func, *args, **kwargs):
+        if self.async_func(func):
+            return await func(*args, **kwargs)
+        return func(*args, **kwargs)
 
     async def handle_static_file(self, route: str, method: str):
         if (file := Router.static_file_by_route(route)) is not None:
