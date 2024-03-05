@@ -64,16 +64,17 @@ In sqp fields are a pythonic representation of what the fields look like in a da
 
 #### field types
 
-| type     | py orm            |
-|----------|-------------------|
-| integer  | Field("int")      |
-| string   | Field("string")   |
-| float    | Field("float")    |
-| boolean  | Field("bool")     |
-| date     | Field("date")     |
-| datetime | Field("datetime") |
-| time     | Field("time")     |
-| image    | Field("image")    |
+| type     | py orm              |
+|----------|---------------------|
+| integer  | Field("int")        |
+| string   | Field("string")     |
+| float    | Field("float")      |
+| boolean  | Field("bool")       |
+| date     | Field("date")       |
+| datetime | Field("datetime")   |
+| time     | Field("time")       |
+| image    | Field("image")      |
+| text     | Field("text")       |
 
 ## creating queries
 In sqp it's pretty simple to create a query, this an example query on the User table we've created above.

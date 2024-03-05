@@ -135,6 +135,7 @@ class Field(DefaultField):
         field_type_mapping = {
             "int": "INTEGER",
             "string": "VARCHAR(255)",
+            "text": "TEXT",
             "float": "FLOAT",
             "bool": "BOOLEAN",
             "date": "DATE",
