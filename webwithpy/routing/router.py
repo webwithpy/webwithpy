@@ -1,5 +1,7 @@
+import os
 from os import PathLike
 from typing import Union
+from pathlib import Path
 
 
 class RouteData:
@@ -94,3 +96,18 @@ class Router:
             if Router_route.get_route() == route:
                 return Router_route
         return None
+
+    @classmethod
+    def static_file_by_route(cls, route: str):
+        path = Path(f"{os.getcwd()}/static{route}")
+
+        if path.exists():
+            return path.read_text()
+
+        return None
+
+    @classmethod
+    def parse_suffix(cls, suffix: str):
+        known_suffix = {".css": "css", ".js": "javascript"}
+
+        return known_suffix[suffix]

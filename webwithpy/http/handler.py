@@ -5,6 +5,7 @@ from .redirect import Redirect
 from .request import Request
 from .response import Response
 from asyncio import AbstractEventLoop, StreamWriter
+from pathlib import Path
 import socket
 import asyncio
 import traceback
@@ -26,84 +27,56 @@ class HTTPHandler:
         writer: StreamWriter,
         client_request: str,
     ):
-        """
-        Handles the client request by setting cookies, finding the function by the clients path and sending a request
-        back
-        """
-
         self.server = server
         self.client = client
         self.writer = writer
         App.request = Request(client_request)
 
-        session = (
-            self.generate_session()
-            if "session" not in App.request.cookies
-            else App.request.cookies["session"]
-        )
-
-        # make a response object with a new session or the current session given by the request
+        session = self.manage_session()
         self.resp: Response = Response(session)
         App.response = self.resp
 
-        #  try to find the function by the request path
         try:
             func_out, html_template, content_type = await self.call_func_by_route(
                 App.request.path, App.request.method
             )
-
-            self.resp.content_type = content_type
-
-            # make sure we never send any data with the response is 404(DON'T REMOVE CAN LEAK DATA IF REMOVED)
             if isinstance(func_out, RouteNotFound):
                 return
-            elif App.redirect is not None:
-                # function is only protected for people who use the framework, the framework itself can always call
-                # protected functions
+            self.resp.content_type = content_type
+            if App.redirect is not None:
                 await self.send_response(App.redirect._to_http())
                 return
             self.resp._add_content(func_out, html_template)
         except Exception as e:
-            # it is possible that a response
             await self.send_response(self.resp._generate_error(500))
             traceback.print_exception(e)
             return
 
-        # only send response after try catch bc if something goes wrong while sending the response it will give
-        # a completely different exception
         await self.send_response(self.resp._encode())
 
-    async def call_func_by_route(self, route, method):
-        """
-        Runs a function based on the request method and route
-        :return: function output and html template
-        """
+    async def call_func_by_route(self, route: str, method):
         routed_data = Router.get_data_by_route(route, method)
-
         if routed_data is None:
+            return await self.handle_static_file(route, method)
+
+        try:
+            if self.async_func(routed_data.func):
+                result = await routed_data.func(*routed_data.args, **routed_data.kwargs)
+            else:
+                result = routed_data.func(*routed_data.args, **routed_data.kwargs)
+            return result, routed_data.html_template, routed_data.content_type
+        except Exception as e:
             print(
-                f"User tried to go to this path: {App.request.path} with this method: {App.request.method},"
-                f" However it was not found or it could not be accessed with this request method!"
+                f"Error executing function for route {route} and method {method}: {e}"
             )
+            return self.resp._generate_error(500), None, None
 
-            # send a 404 not found back because the path->method->function was not found!
-            await self.send_response(self.resp._generate_error(404))
-            return RouteNotFound(route, method), None, None
+    async def handle_static_file(self, route: str, method: str):
+        if (file := Router.static_file_by_route(route)) is not None:
+            return file, "", f"text/{Router.parse_suffix(Path(route).suffix)}"
 
-        # we will need to awaut the routed function if it is async!
-        if self.async_func(routed_data.func):
-            return (
-                await routed_data.func(*routed_data.args, **routed_data.kwargs),
-                routed_data.html_template,
-                routed_data.content_type,
-            )
-
-        # run routed function no async
-        return (
-            routed_data.func(*routed_data.args, **routed_data.kwargs),
-            routed_data.html_template,
-            routed_data.content_type,
-        )
+        await self.send_response(self.resp._generate_error(404))
+        return RouteNotFound(route, method), None, None
 
     async def send_response(self, resp: bytes | str = b""):
         """
@@ -119,6 +92,11 @@ class HTTPHandler:
         Closes the connection
         """
         self.client.close()
+
+    def manage_session(self):
+        if "session" not in App.request.cookies:
+            return self.generate_session()
+        return App.request.cookies["session"]
 
     @classmethod
     def async_func(cls, func) -> bool:

@@ -12,7 +12,7 @@ class CookieJar:
         response = ""
 
         for name, value in self.cookies.items():
-            response += f"Set-Cookie: {name}={value}; Max-Age: 86400\n"
+            response += f"Set-Cookie: {name}={value}; Max-Age: 86400; SameSite=Strict\n"
 
         return response
 
