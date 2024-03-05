@@ -150,7 +150,7 @@ class DB:
         for field in fields:
             sql += f"{field.field_name} {field.field_type}, "
         sql = sql[:-2] + ")"
-        print(sql)
+
         DB.cursor.execute(sql)
 
     def __getattribute__(self, item):
