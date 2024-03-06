@@ -8,11 +8,6 @@ from asyncio.events import AbstractEventLoop
 from .http.handler import HTTPHandler
 from .app import App
 
-SERVER_HOST = None
-SERVER_PORT = None
-SSL_CERTIFICATE_PATH = None
-SSL_PRIVATE_KEY_PATH = None
-
 
 def run_server(
     server_host="127.0.0.1",
@@ -21,22 +16,6 @@ def run_server(
     ssl_private_key_path="path/to/your/private-key.pem",
     use_ssl=False,
 ):
-    global SERVER_HOST, SERVER_PORT, SSL_CERTIFICATE_PATH, SSL_PRIVATE_KEY_PATH
-
-    current_py_version = sys.version_info
-    if current_py_version.major != 3 or current_py_version.minor < 12:
-        warnings.warn(
-            "current python version is deprecated! whenever official py 3.13 launches <=py3.12 will be"
-            " unsupported.\nuse of py3.12 is recommended for longest support!",
-            DeprecationWarning,
-        )
-
-    SERVER_HOST, SERVER_PORT = server_host, server_port
-    SSL_CERTIFICATE_PATH, SSL_PRIVATE_KEY_PATH = (
-        ssl_certificate_path,
-        ssl_private_key_path,
-    )
-
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind((server_host, server_port))
@@ -46,25 +25,36 @@ def run_server(
 
     print(f"server started on {server_host}:{server_port}")
 
-    try:
-        if use_ssl:
-            ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-            ssl_context.load_cert_chain(SSL_CERTIFICATE_PATH, SSL_PRIVATE_KEY_PATH)
-            ssl_context.verify_mode = ssl.VerifyMode.CERT_REQUIRED
-            ssl_context.set_ciphers(
-                "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384"
-            )
-        else:
-            ssl_context = None
+    ssl_context = (
+        generate_ssl_context(ssl_certificate_path, ssl_private_key_path)
+        if use_ssl
+        else None
+    )
 
-        loop.run_until_complete(load_clients(server, loop, ssl_context))
+    try:
+        loop.run_until_complete(load_clients(server, loop, ssl_context, server_host))
     except KeyboardInterrupt:
         # Make sure we don't throw an error when we exit the server
         print("server closed!")
 
 
+def generate_ssl_context(
+    ssl_certificate_path="path/to/your/certificate.pem",
+    ssl_private_key_path="path/to/your/private-key.pem",
+):
+    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    ssl_context.load_cert_chain(ssl_certificate_path, ssl_private_key_path)
+    ssl_context.verify_mode = ssl.VerifyMode.CERT_REQUIRED
+    ssl_context.set_ciphers("ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384")
+
+    return ssl_context
+
+
 async def load_clients(
-    server: socket.socket, loop: AbstractEventLoop, ssl_context: ssl.SSLContext
+    server: socket.socket,
+    loop: AbstractEventLoop,
+    ssl_context: ssl.SSLContext,
+    host: str,
 ):
     try:
         while True:
@@ -75,19 +65,16 @@ async def load_clients(
             )
             client_request: str = (await reader.read(2048)).decode()
 
-            print(client_request)
-
             # add request to app
-            App.server_path = SERVER_HOST
+            App.server_path = host
 
-            http_handler = HTTPHandler()
             await loop.create_task(
-                http_handler.handle_client(
+                HTTPHandler(
                     server=loop,
                     client=client_conn,
                     writer=writer,
                     client_request=client_request,
-                )
+                ).handle_client()
             )
 
             await writer.drain()

@@ -12,21 +12,13 @@ import uuid
 
 
 class HTTPHandler:
-    def __init__(self):
-        self.server = None
-        self.client = None
-        self.writer = None
-        self.resp = None
-        App.request = None
-
-    async def handle_client(
+    def __init__(
         self,
         server: AbstractEventLoop,
         client: socket.socket,
         writer: StreamWriter,
         client_request: str,
     ):
-
         self.server = server
         self.client = client
         self.writer = writer
@@ -36,6 +28,7 @@ class HTTPHandler:
         self.resp: Response = Response(session)
         App.response = self.resp
 
+    async def handle_client(self):
         try:
             func_out, html_template, content_type = await self.call_func_by_route(
                 App.request.path, App.request.method
@@ -70,6 +63,8 @@ class HTTPHandler:
             print(
                 f"Error executing function for route {route} and method {method}: {e}"
             )
+            traceback.print_exception(e)
+
             return self.resp._generate_error(500), None, None
 
     async def call_routed_func(self, func, *args, **kwargs):
