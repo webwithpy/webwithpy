@@ -1,12 +1,18 @@
-from ..objects import Field
+from __future__ import annotations
+
+import typing
+
+from ..objects import DefaultField
 from .driver_interface import IDriver
 
 # No @override, only python >3.12 supports it and wwp currently support >3.10
+if typing.TYPE_CHECKING:
+    from ..dialects.sqlite import SqliteDialect
 
 
 class SqliteDriver(IDriver):
-    def __init__(self, dialect):
-        self.dialect = dialect
+    def __init__(self, dialect: SqliteDialect):
+        self.dialect: SqliteDialect = dialect
 
         # removes the amount of table from the select bc they are already selected
         self.tables_selected = 0
@@ -120,7 +126,7 @@ class SqliteDriver(IDriver):
 
         # translates fields to a where stmt so we now what args and tables we need to give up in sql
         def input_field(_field: str, _stmt: str = ""):
-            if isinstance(_field, Field):
+            if isinstance(_field, DefaultField):
                 _field = str(_field)
                 table, field_name = _field.split(".")
                 sql_information["tables"].add(table)
