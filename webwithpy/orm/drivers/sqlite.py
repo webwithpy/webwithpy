@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import typing
+from typing import TYPE_CHECKING, Type
 
 from ..objects import DefaultField
 from .driver_interface import IDriver
 
 # No @override, only python >3.12 supports it and wwp currently support >3.10
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from ..dialects.sqlite import SqliteDialect
 
 
@@ -32,9 +32,9 @@ class SqliteDriver(IDriver):
         unpacked_query = self.dialect.unpack(query)
 
         # translate unpacked query to [tables, args, where_stmt]
-        sql_information: dict[
-            str, set | list | str
-        ] = self.translate_unpacked_query_sql(unpacked_query)
+        sql_information: dict[str, set | list | str] = (
+            self._translate_unpacked_query_sql(unpacked_query)
+        )
 
         join = (
             table_name
@@ -51,7 +51,7 @@ class SqliteDriver(IDriver):
         orderby = f"ORDER BY {orderby}" if orderby else ""
 
         return (
-            self._select(
+            self.dialect.select(
                 fields=fields,
                 tables=join,
                 where=sql_information["where_stmt"],
@@ -71,7 +71,7 @@ class SqliteDriver(IDriver):
         self.tables_selected = 1
 
         # make the select 1 due to speedup performances
-        sql_information = self.translate_unpacked_query_sql(unpacked)
+        sql_information = self._translate_unpacked_query_sql(unpacked)
 
         if len(sql_information["tables"]) > 1:
             raise RuntimeError("Cannot select more then 1 table in a update statement!")
@@ -81,7 +81,7 @@ class SqliteDriver(IDriver):
         update_vals = ",".join([f"{key}=?" for key in kwargs.keys()])
 
         return (
-            self._update(
+            self.dialect.update(
                 first_table=sql_information["tables"][0],
                 update_vals=update_vals,
                 where=sql_information["where_stmt"],
@@ -96,23 +96,26 @@ class SqliteDriver(IDriver):
         self.tables_selected = 1
 
         # fields needs to be 1
-        sql_information = self.translate_unpacked_query_sql(unpacked)
+        sql_information = self._translate_unpacked_query_sql(unpacked)
 
         if len(sql_information["tables"]) > 1:
             raise RuntimeError("Cannot select more then 1 table in a update statement!")
 
         # generate sql based on prev calculated vals
         return (
-            self._delete(
+            self.dialect.delete(
                 first_table=sql_information["tables"][0],
                 select=sql_information["where"],
             ),
             sql_information["args"],
         )
 
-    def translate_unpacked_query_sql(
+    def _translate_unpacked_query_sql(
         self, unpacked_query: dict[str, list[str]]
     ) -> dict[str, set | list | str]:
+        """
+        translates the unpacked query from dialects/sqlite to a sql query.
+        """
         # all necessary sql information for getting tables, args and the where statement out of the query
         sql_information: dict[str, set | list | str] = {
             "tables": set(),
@@ -173,15 +176,3 @@ class SqliteDriver(IDriver):
         make it so that every table is joined
         """
         return f"".join([f" INNER JOIN {table}" for table in tables[1:]])
-
-    def insert(self, table_name: str, items: dict):
-        return f"INSERT INTO {table_name} ({','.join(items.keys())}) VALUES ({','.join(['?' for _ in items.keys()])})"
-
-    def _select(self, fields, tables, where=None, distinct=None, orderby=None):
-        return f"SELECT {distinct}{fields} FROM {tables}{where}{orderby}"
-
-    def _update(self, first_table: str, update_vals: str, where: str):
-        return f"UPDATE {first_table} SET {update_vals} {where}"
-
-    def _delete(self, first_table: str, select: str):
-        return f"DELETE FROM {first_table} {select}"

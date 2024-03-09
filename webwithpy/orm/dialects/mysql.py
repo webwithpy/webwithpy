@@ -1,7 +1,7 @@
-from .sql import SQLDialect
+from webwithpy.orm.dialects.sql import SQLDialect
 
 
-class SqliteDialect(SQLDialect):
+class MysqlDialect(SQLDialect):
     def insert(self, table_name: str, items: dict):
         return f"INSERT INTO {table_name} ({','.join(items.keys())}) VALUES ({','.join(['?' for _ in items.keys()])})"
 

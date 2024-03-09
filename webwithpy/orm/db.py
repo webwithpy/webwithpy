@@ -138,6 +138,9 @@ class DB:
                 from .dialects.sqlite import SqliteDialect
 
                 return SqliteDriver(SqliteDialect)
+            case "mysql":
+                from .dialects.mysql import MysqlDialect
+
         raise Exception(f"{driver} is not a valid driver!")
 
     @classmethod

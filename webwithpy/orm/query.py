@@ -6,6 +6,7 @@ import bcrypt
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from .dialects.sql import SQLDialect
     from .drivers.driver_interface import IDriver
     from ..orm.db import DB
 
@@ -17,7 +18,7 @@ class Query:
         db=None,
         conn=None,
         cursor=None,
-        dialect=None,
+        dialect: SQLDialect = None,
         driver: IDriver = None,
         operator="=",
         first=None,
@@ -28,7 +29,7 @@ class Query:
         self.db: DB = db
         self.conn = conn
         self.cursor = cursor
-        self.dialect = dialect
+        self.dialect: SQLDialect = dialect
         self.driver: IDriver = driver
         self.operator = operator
         self.first = first
@@ -38,7 +39,7 @@ class Query:
 
     def __tables__(self):
         unpacked_query = self.dialect.unpack(self)
-        return self.driver.translate_unpacked_query_sql(unpacked_query).get(
+        return self.driver._translate_unpacked_query_sql(unpacked_query).get(
             "tables"
         ) or {self.table_name: self.db.tables[self.table_name]}
 

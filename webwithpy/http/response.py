@@ -27,6 +27,7 @@ class Response:
         # _ means the variable is 'private'(private vars don't exist however they do in code editors like pycharm!)
         self._cookie_jar = CookieJar()
         self._cookie_jar.add_cookie("session", session)
+        self.error = None
 
     def get_all_cookies(self):
         """
@@ -97,6 +98,10 @@ class Response:
         """
         builds an HTTP request that we can send to the user.
         """
+        if self.error:
+            self.contents = [self.error]
+            self.headers = {}
+
         response: str = (
             f"HTTP/{self.http_version} 200 OK\nContent-Type: {self.content_type}\n"
         )
@@ -111,17 +116,3 @@ class Response:
         response += "\n".join(self.contents)
 
         return response
-
-    def _generate_error(self, code=500):
-        """
-        the only errors we currently support is or 500 or 404
-        """
-        self.headers = {}
-        self.contents = []
-
-        if code == 500:
-            return (
-                f"HTTP/{self.http_version} 500 SERVER ERROR\n\n<h1>SERVER ERROR!</h1>"
-            )
-
-        return f"HTTP/{self.http_version} 404 NOT FOUND\n\n<h1>PAGE NOT FOUND!</h1>"

@@ -31,7 +31,7 @@ class IDriver:
     def delete(self, query):
         pass
 
-    def translate_unpacked_query_sql(
+    def _translate_unpacked_query_sql(
         self, unpacked_query: dict[str, list[str]]
     ) -> dict[str, set | list | str]:
         pass
