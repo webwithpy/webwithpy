@@ -31,7 +31,7 @@ class HTTPHandler:
 
     async def handle_client(self):
         try:
-            func_out, html_template, content_type = await self.call_func_by_route(
+            func_out, html_template, content_type = await Router.call_func_by_route(
                 App.request.path, App.request.method
             )
             if isinstance(func_out, RouteNotFound):
@@ -41,39 +41,12 @@ class HTTPHandler:
                 await self.send_response(App.redirect._to_http())
                 return
             self.resp._add_content(func_out, html_template)
-        except HttpException | RouteException as e:
+        except Exception as e:
             await self.send_response(e.__str__())
             traceback.print_exception(e)
             return
 
         await self.send_response(self.resp._encode())
-
-    @classmethod
-    async def call_func_by_route(cls, route: str, method: str):
-        routed_data = Router.get_data_by_route(route, method)
-
-        if routed_data is None:
-            return await cls.handle_static_file(route, method)
-
-        try:
-            result = await HandleAsync.call_function(
-                routed_data.func, *routed_data.args, **routed_data.kwargs
-            )
-
-            return result, routed_data.html_template, routed_data.content_type
-        except Exception as e:
-            print(
-                f"Error executing function for route {route} and method {method}: {e}"
-            )
-
-            raise ServerError("Server Error!")
-
-    @classmethod
-    async def handle_static_file(cls, route: str, method: str):
-        if (file := Router.static_file_by_route(route)) is not None:
-            return file, "", f"text/{Router.parse_suffix(Path(route).suffix)}"
-
-        raise RouteNotFound(route, method)
 
     async def send_response(self, resp: bytes | str = b""):
         """

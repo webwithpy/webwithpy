@@ -8,7 +8,9 @@ class RouteException(Exception):
 
 
 class RouteFound(RouteException):
-    def __init__(self, route: str, method: Callable = None, defined_method: Callable = None):
+    def __init__(
+        self, route: str, method: Callable = None, defined_method: Callable = None
+    ):
         self.message = f"Route {route} is already in use"
 
         if method is not None:

@@ -22,7 +22,7 @@ class IDriver:
         """
         pass
 
-    def insert(self, table_name: str, items: dict):
+    def insert(self, table_name: str, **kwargs):
         pass
 
     def update(self, query, **kwargs):

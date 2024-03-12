@@ -1,4 +1,4 @@
-class HttpException(Exception):
+class HttpException(BaseException):
     def __init__(self, error_type: str, message: str):
         self.message = message
         self.error_type = error_type

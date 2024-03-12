@@ -9,5 +9,5 @@ class HandleAsync:
         return func(*args, **kwargs)
 
     @classmethod
-    async def is_async(cls, func):
+    def is_async(cls, func):
         return asyncio.iscoroutinefunction(func)

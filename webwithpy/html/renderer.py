@@ -1,8 +1,10 @@
+from webwithpy.routing.router import Router
+
 from .data.ast import Block, Stmt, Include, Extends, Python, Html, Variable, Request
 from .parser import DefaultParser
 from .lexer import Lexer
 from typing import List
-from ..http.handler import HTTPHandler
+
 
 class RenderBlock:
     def __init__(self, code: str):
@@ -50,7 +52,7 @@ class DefaultRenderer:
                         cls.code += f"{cls.spacing}html += str({stmt.code})\n"
                 case "request":
                     stmt: Request
-                    result, _, _ = HTTPHandler.call_func_by_route(stmt.request_path, "GET")
+                    result, _, _ = Router.call_func_by_route(stmt.request_path, "GET")
                     cls.code += f"{cls.spacing}html += str({result})\n"
                 case "python":
                     if "else" in stmt.code or "elif" in stmt.code:
