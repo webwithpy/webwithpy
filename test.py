@@ -1,21 +1,30 @@
-from webwithpy.orm2 import DB, Table, Field
+from webwithpy.orm import DB, Table, Field
 from webwithpy import run_server
 from webwithpy.routing import GET
 
 
-class TestTable(Table):
-    table_name = "test_table"
-    name = Field("string")
+class Test(Table):
+    table_name = "test"
+    x = Field("int")
 
 
-db = DB("sqlite:/test.db")
+class Test2(Table):
+    table_name = "test2"
+    y = Field("int")
+
+
+# db = DB("sqlite:/test.db")
+db = DB("mysql:/|sammy:helloWorld9!@localhost/wwp")
 
 
 @GET("/")
-def test_db():
-    return ((db.test_table.name == "hello") | (db.test_table.name == "hello2")).select()
+def test():
+    return "Hello World!"
 
 
 if __name__ == "__main__":
-    db.create_table(TestTable)
+    db.create_tables(Test, Test2)
+    # ((db.test.id > 1) & (db.test2.id > 1)).select()
+    db.test.insert(x=1)
+    print((db.test.id == 1).select())
     run_server()

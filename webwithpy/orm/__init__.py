@@ -1,2 +1,2 @@
-from .db import DB
-from .objects import Table, Field
+from .core import DB
+from .objects.objects import Table, Field
