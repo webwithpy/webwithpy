@@ -3,6 +3,11 @@ from os import PathLike
 from typing import Union
 from pathlib import Path
 
+from webwithpy.exeptions.RouteExceptions import RouteNotFound
+
+from webwithpy.exeptions import ServerError
+from webwithpy.helper.async_handler import HandleAsync
+
 
 class RouteData:
     def __init__(
@@ -111,3 +116,30 @@ class Router:
         known_suffix = {".css": "css", ".js": "javascript"}
 
         return known_suffix[suffix]
+
+    @classmethod
+    async def call_func_by_route(cls, route: str, method: str):
+        routed_data = cls.get_data_by_route(route, method)
+
+        if routed_data is None:
+            return await cls.handle_static_file(route, method)
+
+        try:
+            result = await HandleAsync.call_function(
+                routed_data.func, *routed_data.args, **routed_data.kwargs
+            )
+
+            return result, routed_data.html_template, routed_data.content_type
+        except Exception as e:
+            print(
+                f"Error executing function for route {route} and method {method}: {e}"
+            )
+
+            raise ServerError("Server Error!")
+
+    @classmethod
+    async def handle_static_file(cls, route: str, method: str):
+        if (file := Router.static_file_by_route(route)) is not None:
+            return file, "", f"text/{Router.parse_suffix(Path(route).suffix)}"
+
+        raise RouteNotFound(route, method)
