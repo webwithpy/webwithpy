@@ -10,14 +10,26 @@ class Table:
     ):
         self.driver = driver
         self.table_name = name
-        self.fields = fields
+        self.fields: list = fields or []
         self.caching = caching
+
+    def get_field(self, name: str):
+        for field in self.fields:
+            if field.name == name:
+                return field
+
+        return None
 
     def insert(self, **items: Any):
         self.driver.insert(self, items)
 
     def select(self):
-        ...
+        # here we create a sql statement that is always true, so we can select all fields.
+        # this is necessary since driver.select expects a query
+        self.driver.select(
+            Query(self.driver, self.fields[0], 0, "=")
+            | Query(self.driver, self.fields, 0, "!="),
+        )
 
     def __getattribute__(self, item):
         try:

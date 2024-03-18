@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Any
 
 
 class HtmlTag:
@@ -37,7 +37,7 @@ class Label(HtmlTag):
 class Input(HtmlTag):
     def __init__(
         self,
-        **attrs: str,
+        **attrs: Any,
     ):
         self.attrs = self.set_dict_attrs(attrs)
 

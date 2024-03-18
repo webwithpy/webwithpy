@@ -40,7 +40,10 @@ class SqliteDriver(IDriver):
         sql = DB.dialect.insert(table, items)
         self.execute_sql(sql, list(items.values()))
 
-    def select(self, query: Query | ListedQuery, fields: list[str]) -> list[Any]:
+    def select(self, query: Query | ListedQuery, fields: list[str] = None) -> list[Any]:
+        if fields is None:
+            fields = []
+
         s_fields, stmt = query.build()
         sql = DB.dialect.select(stmt, query.__tables__(), False, fields)
 

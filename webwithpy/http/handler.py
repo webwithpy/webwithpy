@@ -31,7 +31,7 @@ class HTTPHandler:
 
     async def handle_client(self):
         try:
-            func_out, html_template, content_type = await Router.call_func_by_route(
+            func_out, html_template, content_type = await Router._call_func_by_route(
                 App.request.path, App.request.method
             )
             if isinstance(func_out, RouteNotFound):

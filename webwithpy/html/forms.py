@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os.path
-
 from ..app import App
 from ..http import url
 from ..http.redirect import Redirect
@@ -11,11 +9,11 @@ import jwt
 
 # Add everything for type checking
 from typing import TYPE_CHECKING
+from ..orm.core import DB
 
 if TYPE_CHECKING:
-    from ..orm.db import DB
-    from ..orm.query import Query
-    from ..orm.objects import Table, Field
+    from ..orm.objects.query import IQuery
+    from ..orm.objects.objects import Table
 
 
 class FormTools:
@@ -90,7 +88,7 @@ class FormTools:
         return default_links
 
     @classmethod
-    def get_field_type(cls, db: DB, table_name: str, field_name: str):
+    def get_field_type(cls, table_name: str, field_name: str):
         """
         gets the type of fields in html, so we can display it better in html
         """
@@ -98,7 +96,7 @@ class FormTools:
         if field_name == "password":
             return "password"
 
-        field_type = db.tables[table_name].fields[field_name].field_type
+        field_type = DB.tables[table_name].get_field(field_name).field_type
         translation_table = {"IMAGE": "file"}
 
         return translation_table.get(field_type, "text")
@@ -112,7 +110,7 @@ class SQLForm(FormTools):
 
     def __init__(
         self,
-        query: Query,
+        query: IQuery,
         fields: list = None,
         smart=False,
         create=True,
@@ -140,7 +138,6 @@ class SQLForm(FormTools):
         self.onupdate = onupdate
         self.ondelete = ondelete
         self.query = query
-        self.db: DB = query.db
 
         # get all the names of the fields, normally a field is something like table.field_name
         # however in this case we only want field_name, that's why we remove the table name
@@ -148,7 +145,7 @@ class SQLForm(FormTools):
             self.fields = [str(field).split(".")[1] for field in fields]
         else:
             # way to get all the field names from the table
-            self.fields = self.db.tables[query.table_name].fields.keys()
+            self.fields = DB.tables[query.__tables__()[0]].fields
 
     def as_html(self):
         """
@@ -173,15 +170,14 @@ class SQLForm(FormTools):
                 return self.default_styling() + self.edit_form(jwt_decoded["idx"])
             # user submitted data that can be inserted into the database
             elif "insert_data" in jwt_decoded:
-                # get the id of the field we are going te be selecting
-                table: Table = getattr(self.db, self.query.__tables__()[0])
+                table: Table = DB.tables[self.query.__tables__()[0]]
                 table.insert(**App.request.form_data)
             # we can edit data that has been sent to the database
             elif "edit_data" in jwt_decoded:
                 fields = self.query.select()
 
                 # get the id of the field we are going te be selecting
-                table: Table = getattr(self.db, self.query.__tables__()[0])
+                table: Table = DB.tables[self.query.__tables__()[0]]
                 (table.id == fields[jwt_decoded["idx"]]["id"]).update(
                     **App.request.form_data
                 )
@@ -190,7 +186,7 @@ class SQLForm(FormTools):
                 fields = self.query.select()
 
                 # get the id of the field we are going te be selecting
-                table: Table = getattr(self.db, self.query.__tables__()[0])
+                table: Table = DB.tables[self.query.__tables__()[0]]
                 (table.id == fields[jwt_decoded["idx"]]["id"]).delete(
                     **App.request.form_data
                 )
@@ -248,9 +244,7 @@ class SQLForm(FormTools):
         keys = ""
         for table in tables:
             for field_name in (
-                self.db.tables[table].fields.keys()
-                if len(self.fields) == 0
-                else self.fields
+                DB.tables[table].fields if len(self.fields) == 0 else self.fields
             ):
                 keys += f"<td class='block'>{field_name}</td>"
 
@@ -270,14 +264,12 @@ class SQLForm(FormTools):
         insert_html = Form(
             *[
                 Input(
-                    _name=field.field_name,
-                    _type=self.get_field_type(
-                        self.db, self.query.table_name, field.field_name
-                    ),
-                    placeholder=field.field_text or field.field_name,
+                    _name=field.name,
+                    _type=self.get_field_type(self.query.__tables__()[0], field.name),
+                    placeholder=field.field_text or field.name,
                 ).__str__()
-                for field in self.db.tables[self.query.table_name].fields.values()
-                if field.field_name != "id"
+                for field in DB.tables[self.query.__tables__()[0]].fields
+                if field.name != "id"
             ],
             Div(self.back_button(), self.submit_button()),
             action=url(App.request.path, jwt=jwt_encoded),
@@ -461,7 +453,7 @@ class InputForm(FormTools):
             return [
                 field
                 for field in self.db.tables[self.table_name].fields.values()
-                if field.field_name in self.fields
+                if field.name in self.fields
             ]
         else:
             return self.db.tables[self.table_name].fields.values()
@@ -474,18 +466,16 @@ class InputForm(FormTools):
                 H1(self.form_title) if self.form_title else "",
                 *[
                     Input(
-                        _name=field.field_name,
-                        _id=field.field_name,
+                        _name=field.name,
+                        _id=field.name,
                         _type=self.get_field_type(
-                            self.db,
                             self.table_name,
-                            field.field_name,
+                            field.name,
                         ),
-                        placeholder=field.field_text or field.field_name,
+                        placeholder=field.field_text or field.name,
                     ).__str__()
                     for field in self.GetFields()
-                    if field.field_name != "id"
-                    and field.field_name not in self.exclude_fields
+                    if field.name != "id" and field.name not in self.exclude_fields
                 ],
                 P(text=self.error_msg, style="color: red;") if self.error_msg else "",
                 Div(self.submit_button()),

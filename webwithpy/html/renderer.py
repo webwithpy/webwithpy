@@ -52,7 +52,7 @@ class DefaultRenderer:
                         cls.code += f"{cls.spacing}html += str({stmt.code})\n"
                 case "request":
                     stmt: Request
-                    result, _, _ = Router.call_func_by_route(stmt.request_path, "GET")
+                    result, _, _ = Router._call_func_by_route(stmt.request_path, "GET")
                     cls.code += f"{cls.spacing}html += str({result})\n"
                 case "python":
                     if "else" in stmt.code or "elif" in stmt.code:

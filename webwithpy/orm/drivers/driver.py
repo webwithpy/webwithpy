@@ -28,7 +28,7 @@ class IDriver:
     def insert(self, table: Table, items: dict) -> None:
         ...
 
-    def select(self, query: Query | ListedQuery, fields: list[str]) -> list[Any]:
+    def select(self, query: Query | ListedQuery, fields: list[str] = None) -> list[Any]:
         ...
 
     def update(self, query: Query | ListedQuery, update_values: dict) -> None:
