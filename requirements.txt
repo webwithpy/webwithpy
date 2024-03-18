@@ -1,4 +1,4 @@
-webwithpy~=0.6.4.1
+webwithpy~=0.7.0.1
 setuptools~=69.0.2
 Cython~=3.0.5
 bcrypt~=3.2.0
