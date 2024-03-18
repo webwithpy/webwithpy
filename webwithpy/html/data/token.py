@@ -8,6 +8,7 @@ class Methods(IntEnum):
     EXTENDS = auto()
     BLOCK = auto()
     VARIABLE = auto()
+    REQUEST = auto()
     PYTHON = auto()
     END = auto()
     PASS = auto()

@@ -28,7 +28,7 @@ class FileStmt(Stmt):
             raise Exception(f"File path not found {self.file_path}")
 
     def file_content(self):
-        return self.file_path.read_text('utf-8')
+        return self.file_path.read_text("utf-8")
 
 
 class Extends(FileStmt):
@@ -46,38 +46,45 @@ class Include(FileStmt):
 class Block(Stmt):
     def __init__(self, block_name: str, data: List[Stmt]):
         super().__init__()
-        self.kind = 'block'
+        self.kind = "block"
         self.name = block_name
         self.block_data = data
+
+
+class Request(Stmt):
+    def __init__(self, request_path: str):
+        super().__init__()
+        self.kind = "request"
+        self.request_path = request_path
 
 
 class Python(Stmt):
     def __init__(self, code: str):
         super().__init__()
-        self.kind = 'python'
+        self.kind = "python"
         self.code = code
 
 
 class Variable(Python):
     def __init__(self, code: str):
         super().__init__(code)
-        self.kind = 'variable'
+        self.kind = "variable"
 
 
 class Html(Stmt):
     def __init__(self, code: str):
         super().__init__()
-        self.kind = 'html'
+        self.kind = "html"
         self.code = code
 
 
 class Pass(Stmt):
     def __init__(self):
         super().__init__()
-        self.kind = 'pass'
+        self.kind = "pass"
 
 
 class End(Stmt):
     def __init__(self):
         super().__init__()
-        self.kind = 'end'
+        self.kind = "end"

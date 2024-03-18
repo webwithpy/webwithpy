@@ -1,12 +1,13 @@
-from ..exeptions.RouteExceptions import RouteNotFound
+from ..exeptions.HttpExceptions import HttpException, BadRequest, ServerError
+from ..exeptions.RouteExceptions import RouteException, RouteNotFound
+from ..helper.async_handler import HandleAsync
 from ..routing.router import Router
-from ..app import App
-from .request import Request
 from .response import Response
+from .request import Request
+from ..app import App
 from asyncio import AbstractEventLoop, StreamWriter
 from pathlib import Path
 import socket
-import asyncio
 import traceback
 import uuid
 
@@ -30,7 +31,7 @@ class HTTPHandler:
 
     async def handle_client(self):
         try:
-            func_out, html_template, content_type = await self.call_func_by_route(
+            func_out, html_template, content_type = await Router._call_func_by_route(
                 App.request.path, App.request.method
             )
             if isinstance(func_out, RouteNotFound):
@@ -41,43 +42,11 @@ class HTTPHandler:
                 return
             self.resp._add_content(func_out, html_template)
         except Exception as e:
-            await self.send_response(self.resp._generate_error(500))
+            await self.send_response(e.__str__())
             traceback.print_exception(e)
             return
 
         await self.send_response(self.resp._encode())
-
-    async def call_func_by_route(self, route: str, method):
-        routed_data = Router.get_data_by_route(route, method)
-
-        if routed_data is None:
-            return await self.handle_static_file(route, method)
-
-        try:
-            result = await self.call_routed_func(
-                routed_data.func, *routed_data.args, **routed_data.kwargs
-            )
-
-            return result, routed_data.html_template, routed_data.content_type
-        except Exception as e:
-            print(
-                f"Error executing function for route {route} and method {method}: {e}"
-            )
-            traceback.print_exception(e)
-
-            return self.resp._generate_error(500), None, None
-
-    async def call_routed_func(self, func, *args, **kwargs):
-        if self.async_func(func):
-            return await func(*args, **kwargs)
-        return func(*args, **kwargs)
-
-    async def handle_static_file(self, route: str, method: str):
-        if (file := Router.static_file_by_route(route)) is not None:
-            return file, "", f"text/{Router.parse_suffix(Path(route).suffix)}"
-
-        await self.send_response(self.resp._generate_error(404))
-        return RouteNotFound(route, method), None, None
 
     async def send_response(self, resp: bytes | str = b""):
         """
@@ -98,13 +67,6 @@ class HTTPHandler:
         if "session" not in App.request.cookies:
             return self.generate_session()
         return App.request.cookies["session"]
-
-    @classmethod
-    def async_func(cls, func) -> bool:
-        """
-        tests if the function is async or not
-        """
-        return asyncio.iscoroutinefunction(func)
 
     @classmethod
     def generate_session(cls):

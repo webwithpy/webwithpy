@@ -5,8 +5,7 @@ from typing import List
 
 
 class Lexer:
-    def __init__(self):
-        ...
+    def __init__(self): ...
 
     def lex_file(self, file_path: Path | str) -> List[Token]:
         tokens = []
@@ -37,12 +36,12 @@ class Lexer:
             # append left
             tokens.append(Token(data=line[0:l_bracket], method=Methods.HTML))
             # append middle
-            middle_line = self.__filter_pyht(line=line[l_bracket + 2: r_bracket])
+            middle_line = self.__filter_pyht(line=line[l_bracket + 2 : r_bracket])
             tokens.append(self.get_token_by_line(middle_line))
 
             # append right side of code
             tokens.append(
-                Token(data=line[r_bracket + 2: len(line)], method=Methods.HTML)
+                Token(data=line[r_bracket + 2 : len(line)], method=Methods.HTML)
             )
 
             if using_bracket_finder:
@@ -59,29 +58,33 @@ class Lexer:
         if line.startswith("include"):
             # NOTE: include will do the same as extends for the time being, however it might find use in the
             # future
-            line = line[len("include"): len(line)]
-            line = remove_quotes(line.replace(' ', ''))
+            line = line[len("include") : len(line)]
+            line = remove_quotes(line.replace(" ", ""))
             return Token(data=line, method=Methods.INCLUDE)
         elif line.startswith("extends"):
             # extending files means including its entire content and putting at the extends loc
-            line = line[len("extends"): len(line)]
-            line = remove_quotes(line.replace(' ', ''))
+            line = line[len("extends") : len(line)]
+            line = remove_quotes(line.replace(" ", ""))
             return Token(data=line, method=Methods.EXTENDS)
         elif line.startswith("block"):
             # code blocks you can place anywhere
-            line = line[len("block"): len(line)]
-            line = remove_quotes(line.replace(' ', ''))
+            line = line[len("block") : len(line)]
+            line = remove_quotes(line.replace(" ", ""))
             return Token(data=line, method=Methods.BLOCK)
-        elif line.startswith('='):
+        elif line.startswith("="):
             # this is going to be for drawing python variables to the screen
-            line = line[1: len(line)]
+            line = line[1 : len(line)]
             return Token(data=line, method=Methods.VARIABLE)
+        elif line.startswith("get"):
+            line = line[len("get") : len(line)]
+            line = remove_quotes(line.replace(" ", ""))
+            return Token(data=line, method=Methods.REQUEST)
         elif line == "pass":
             # makes spacing go back, so we can exit out of a for loop for example
-            return Token(data='', method=Methods.PASS)
+            return Token(data="", method=Methods.PASS)
         elif line == "end":
             # the end block will do the same as the PASS block, this is just personal preference
-            return Token(data='', method=Methods.END)
+            return Token(data="", method=Methods.END)
         else:
             return Token(data=line, method=Methods.PYTHON)
 
@@ -100,8 +103,8 @@ class Lexer:
                 index += 1
                 continue
 
-            filtered_data = token.data.replace(' ', '').replace('\n', '')
-            if filtered_data == '' and len(filtered_data) == 0:
+            filtered_data = token.data.replace(" ", "").replace("\n", "")
+            if filtered_data == "" and len(filtered_data) == 0:
                 tokens.pop(index)
                 index -= 1
             index += 1
@@ -118,4 +121,3 @@ class Lexer:
         line = line.replace("{{", "").replace("}}", "")
         # removes all spaces at start of line
         return line.strip(" ")
-

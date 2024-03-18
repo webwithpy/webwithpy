@@ -1,6 +1,8 @@
-from .data.ast import Block, Stmt, Include, Extends, Python, Html, Variable
-from .lexer import Lexer
+from webwithpy.routing.router import Router
+
+from .data.ast import Block, Stmt, Include, Extends, Python, Html, Variable, Request
 from .parser import DefaultParser
+from .lexer import Lexer
 from typing import List
 
 
@@ -11,11 +13,11 @@ class RenderBlock:
 
 class DefaultRenderer:
     blocks = {}
-    code = ''
-    spacing = ''
+    code = ""
+    spacing = ""
 
     @classmethod
-    def generate_pre_code(cls, program: List[Stmt], spacing: str = '') -> str:
+    def generate_pre_code(cls, program: List[Stmt], spacing: str = "") -> str:
         # we might need to start with diff spacing for fast impl
         if len(spacing) > 0:
             cls.spacing = spacing
@@ -26,7 +28,7 @@ class DefaultRenderer:
                     stmt: Block
                     copied_code = cls.code
                     copied_spacing = cls.spacing
-                    cls.code = cls.spacing = ''
+                    cls.code = cls.spacing = ""
 
                     block_code = cls.generate_pre_code(stmt.block_data)
 
@@ -39,22 +41,26 @@ class DefaultRenderer:
                 case "include":
                     stmt: Include
                     cls.__render_at_file_path(file_path=stmt.file_path)
-                case 'variable':
+                case "variable":
                     stmt: Variable | Block
                     # stmt.code is in this case the name of the block.
                     if stmt.code in cls.blocks:
-                        lines = cls.blocks[stmt.code].split('\n')
+                        lines = cls.blocks[stmt.code].split("\n")
                         for line in lines:
-                            cls.code += f'{cls.spacing}{line}\n'
+                            cls.code += f"{cls.spacing}{line}\n"
                     else:
-                        cls.code += f'{cls.spacing}html += str({stmt.code})\n'
+                        cls.code += f"{cls.spacing}html += str({stmt.code})\n"
+                case "request":
+                    stmt: Request
+                    result, _, _ = Router._call_func_by_route(stmt.request_path, "GET")
+                    cls.code += f"{cls.spacing}html += str({result})\n"
                 case "python":
-                    if 'else' in stmt.code or 'elif' in stmt.code:
+                    if "else" in stmt.code or "elif" in stmt.code:
                         cls.spacing = cls.spacing[:-4]
                     stmt: Python
-                    cls.code += f'{cls.spacing}{stmt.code}\n'
-                    if ':' in stmt.code:
-                        cls.spacing += '    '
+                    cls.code += f"{cls.spacing}{stmt.code}\n"
+                    if ":" in stmt.code:
+                        cls.spacing += "    "
                 case "html":
                     stmt: Html
                     stmt.code = stmt.code.replace('"', "'")
@@ -65,24 +71,24 @@ class DefaultRenderer:
         code = cls.code
         cls.code = ""
         return code
-    
+
     @classmethod
     def render(cls, program: List[Stmt], **kwargs) -> str:
         code = cls.generate_pre_code(program=program)
-        kwargs['html'] = ''
-        kwargs['RenderBlock'] = RenderBlock
+        kwargs["html"] = ""
+        kwargs["RenderBlock"] = RenderBlock
         exec(code, {}, kwargs)
 
-        return kwargs['html']
+        return kwargs["html"]
 
     @classmethod
     def render_pre(cls, code, **kwargs):
-        kwargs['html'] = ''
-        kwargs['RenderBlock'] = RenderBlock
+        kwargs["html"] = ""
+        kwargs["RenderBlock"] = RenderBlock
 
         exec(code, {}, kwargs)
 
-        return kwargs['html']
+        return kwargs["html"]
 
     @classmethod
     def __render_at_file_path(cls, file_path: str) -> None:

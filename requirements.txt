@@ -1,0 +1,7 @@
+webwithpy~=0.6.4.1
+setuptools~=69.0.2
+Cython~=3.0.5
+bcrypt~=3.2.0
+PyJWT~=2.8.0
+asyncio~=3.4.3
+mysql-connector-python~=8.3.0

@@ -2,8 +2,15 @@ import inspect
 from typing import Callable
 
 
-class RouteFound(Exception):
-    def __init__(self, route: str, method: Callable = None, defined_method: Callable = None):
+class RouteException(Exception):
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class RouteFound(RouteException):
+    def __init__(
+        self, route: str, method: Callable = None, defined_method: Callable = None
+    ):
         self.message = f"Route {route} is already in use"
 
         if method is not None:
@@ -14,7 +21,7 @@ class RouteFound(Exception):
         super().__init__(self.message)
 
 
-class RouteNotFound(Exception):
+class RouteNotFound(RouteException):
     def __init__(self, route: str, request_method: str):
         self.message = f"Route {route}:{request_method} is not found!"
 

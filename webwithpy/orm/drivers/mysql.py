@@ -1,49 +1,45 @@
 from __future__ import annotations
-
-from ..drivers.driver import IDriver, dict_factory
 from ..helpers.settings import DBSettings
-from ..objects.query import Query, ListedQuery
 from ..core import DB
-
-from sqlite3 import dbapi2 as sqlite
+from .driver import IDriver
 from typing import TYPE_CHECKING, Any
+from mysql.connector import Connect
 
 if TYPE_CHECKING:
+    from ..objects.query import ListedQuery, Query
     from ..objects.objects import Table
 
 
-class SqliteDriver(IDriver):
-    def __init__(self, db_settings: DBSettings) -> None:
-        super().__init__(db_settings)
+class MysqlDriver(IDriver):
+    def __init__(self, settings: DBSettings) -> None:
+        super().__init__(settings)
         self.connect()
         self.setup()
 
-    def connect(self) -> None:
-        self.conn = sqlite.connect(self.settings.path, timeout=10)
+    def connect(self):
+        self.conn = Connect(
+            host=self.settings.hostname,
+            user=self.settings.username,
+            password=self.settings.password,
+            database=self.settings.database,
+        )
 
-    def setup(self):
-        self.conn.row_factory = dict_factory
+    def execute_sql(self, sql: str, params: list[str] = None) -> Any:
+        if not params:
+            params = []
 
-    def execute_sql(self, sql: str, items: list = None):
-        if not self.conn:
-            self.connect()
-            self.setup()
-
-        if not items:
-            items = []
-
-        result = self.conn.execute(sql, items).fetchall()
+        cursor = self.conn.cursor(prepared=True, dictionary=True)
+        cursor.execute(sql, params)
+        res = cursor.fetchall()
+        cursor.close()
         self.conn.commit()
-        return result
+        return res
 
     def insert(self, table: Table, items: dict) -> None:
         sql = DB.dialect.insert(table, items)
         self.execute_sql(sql, list(items.values()))
 
-    def select(self, query: Query | ListedQuery, fields: list[str] = None) -> list[Any]:
-        if fields is None:
-            fields = []
-
+    def select(self, query: Query | ListedQuery, fields: list[str]) -> list[Any]:
         s_fields, stmt = query.build()
         sql = DB.dialect.select(stmt, query.__tables__(), False, fields)
 

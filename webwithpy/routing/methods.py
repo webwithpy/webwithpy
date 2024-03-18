@@ -4,7 +4,7 @@ from typing import Callable
 
 
 def check_path_exists(func: Callable, route: str):
-    route_data = Router.get_route(route)
+    route_data = Router._get_route(route)
 
     if route_data is not None:
         raise RouteFound(route, method=func, defined_method=route_data.func)

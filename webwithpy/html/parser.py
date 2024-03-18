@@ -35,12 +35,13 @@ class DefaultParser:
             return Block(block_name=block_name, data=block_data)
         elif self.at().method == Methods.EXTENDS:
             file_path = remove_quotes(self.eat().data)
-            extends = Extends(file_path=file_path)
-            return extends
+            return Extends(file_path=file_path)
         elif self.at().method == Methods.INCLUDE:
             file_path = remove_quotes(self.eat().data)
-            include = Include(file_path=file_path)
-            return include
+            return Include(file_path=file_path)
+        elif self.at().method == Methods.REQUEST:
+            request_path = self.eat().data
+
         elif self.at().method == Methods.PASS:
             self.eat()
             return Pass()
