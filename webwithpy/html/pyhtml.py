@@ -19,7 +19,7 @@ class TextField(HtmlTag):
         self.attrs = self.set_dict_attrs(attrs)
 
     def __str__(self):
-        return f"<input {self.attrs}/>"
+        return f"<textarea {self.attrs}/>"
 
 
 class Form(HtmlTag):

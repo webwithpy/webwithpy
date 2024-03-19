@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "webwithpy"
 readme = "README.md"
-version = "0.7.0.6"
+version = "0.7.0.7"
 description = ""
 authors = ["Sven Keimpema"]
 packages = [{include = "webwithpy/**/*.*", format = ["wheel", "sdist"]}]
