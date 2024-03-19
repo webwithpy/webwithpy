@@ -419,7 +419,7 @@ class InputForm(FormTools):
         custom_css_dir: str = "",
     ):
         self.table = table
-        self.db = self.table.db
+        self.driver = table.driver
         self.table_name = self.table.table_name
         self.exclude_fields = exclude_fields or []
         self.fields = fields
@@ -452,11 +452,11 @@ class InputForm(FormTools):
         if self.fields:
             return [
                 field
-                for field in self.db.tables[self.table_name].fields.values()
+                for field in DB.tables[self.table_name].fields
                 if field.name in self.fields
             ]
         else:
-            return self.db.tables[self.table_name].fields.values()
+            return DB.tables[self.table_name].fields
 
     def HtmlInputForm(self) -> str:
         encoded_jwt = self.encode_jwt({"accepted": True})

@@ -12,9 +12,12 @@ class DB:
     tables: dict[str, Table] = None
     dialect: IDialect = None
     driver: IDriver = None
+    _settings: DBSettings = None
 
     def __init__(self, uri: str):
-        self._settings = DBSettings(uri)
+        DB._settings = DBSettings(uri)
+        self._settings = DB._settings
+
         self._init_driver(self._settings.db_type)
         DB.tables = {}
 

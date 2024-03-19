@@ -4,6 +4,7 @@ import os
 
 class DBSettings:
     def __init__(self, uri: str):
+        self.uri = uri
         self.db_type = ""
         self.path: Path | str = ""
         self.hostname = ""

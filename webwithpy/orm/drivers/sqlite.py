@@ -9,7 +9,7 @@ from sqlite3 import dbapi2 as sqlite
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..objects.objects import Table
+    from ..objects.objects import DefaultField, Table
 
 
 class SqliteDriver(IDriver):
@@ -40,12 +40,17 @@ class SqliteDriver(IDriver):
         sql = DB.dialect.insert(table, items)
         self.execute_sql(sql, list(items.values()))
 
-    def select(self, query: Query | ListedQuery, fields: list[str] = None) -> list[Any]:
+    def select(
+        self,
+        query: Query | ListedQuery,
+        fields: list[str] = None,
+        order_by: DefaultField = None,
+    ) -> list[Any]:
         if fields is None:
             fields = []
 
         s_fields, stmt = query.build()
-        sql = DB.dialect.select(stmt, query.__tables__(), False, fields)
+        sql = DB.dialect.select(stmt, query.__tables__(), False, fields, order_by)
 
         return self.execute_sql(sql, s_fields)
 

@@ -23,7 +23,7 @@ class IQuery:
     def select(self, fields: list[str] = None, order_by: DefaultField = None):
         fields = [] if not fields else fields
 
-        return self.driver.select(self, fields, order_by)
+        return self.driver.select(query=self, fields=fields, order_by=order_by)
 
     def update(self, **items: Any) -> None:
         self.driver.update(self, items)
