@@ -20,10 +20,10 @@ class IQuery:
     def __tables__(self) -> list[str]:
         ...
 
-    def select(self, fields: list[str] = None):
+    def select(self, fields: list[str] = None, order_by: DefaultField = None):
         fields = [] if not fields else fields
 
-        return self.driver.select(self, fields)
+        return self.driver.select(self, fields, order_by)
 
     def update(self, **items: Any) -> None:
         self.driver.update(self, items)

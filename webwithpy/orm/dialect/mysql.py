@@ -33,15 +33,20 @@ class MysqlDialect(IDialect):
         return f"INSERT INTO {table.table_name} ({','.join(items.keys())}) VALUES ({','.join(['?' for _ in items.keys()])})"
 
     @classmethod
-    def select(cls, query: str, tables: list[str], distinct: bool, fields: list[str]):
+    def select(
+        cls,
+        query: str,
+        tables: list[str],
+        distinct: bool,
+        fields: list[str],
+        order_by: DefaultField,
+    ):
         fields = "*" if len(fields) == 0 else ",".join(fields)
         non_join_table = tables.pop(0)
         join = "\n".join([cls.i_join(name) for name in tables])
         distinct_stmt = "DISTINCT " if distinct else ""
 
-        return (
-            f"SELECT {distinct_stmt}{fields} FROM {non_join_table} {join} WHERE {query}"
-        )
+        return f"SELECT {distinct_stmt}{fields} FROM {non_join_table} {join} WHERE {query} ORDER BY {order_by}"
 
     @classmethod
     def update(cls, query: str, tables: list[str], items: dict[str, Any]):

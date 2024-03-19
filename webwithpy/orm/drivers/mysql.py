@@ -7,7 +7,7 @@ from mysql.connector import Connect
 
 if TYPE_CHECKING:
     from ..objects.query import ListedQuery, Query
-    from ..objects.objects import Table
+    from ..objects.objects import DefaultField, Table
 
 
 class MysqlDriver(IDriver):
@@ -39,9 +39,14 @@ class MysqlDriver(IDriver):
         sql = DB.dialect.insert(table, items)
         self.execute_sql(sql, list(items.values()))
 
-    def select(self, query: Query | ListedQuery, fields: list[str]) -> list[Any]:
+    def select(
+        self,
+        query: Query | ListedQuery,
+        fields: list[str] = None,
+        order_by: DefaultField = None,
+    ) -> list[Any]:
         s_fields, stmt = query.build()
-        sql = DB.dialect.select(stmt, query.__tables__(), False, fields)
+        sql = DB.dialect.select(stmt, query.__tables__(), False, fields, order_by)
 
         return self.execute_sql(sql, s_fields)
 

@@ -19,7 +19,14 @@ class IDialect:
         ...
 
     @classmethod
-    def select(cls, query: str, tables: list[str], distinct: bool, fields: list[str]):
+    def select(
+        cls,
+        query: str,
+        tables: list[str],
+        distinct: bool,
+        fields: list[str],
+        order_by: DefaultField,
+    ):
         ...
 
     @classmethod
