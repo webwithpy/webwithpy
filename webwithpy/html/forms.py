@@ -3,7 +3,7 @@ from __future__ import annotations
 from ..app import App
 from ..http import url
 from ..http.redirect import Redirect
-from .pyhtml import Input, Span, Div, H4, H1, P, A, Form, H3
+from .pyhtml import TextField, Input, Span, Div, H4, H1, P, A, Form, H3
 import pkgutil
 import jwt
 
@@ -13,7 +13,7 @@ from ..orm.core import DB
 
 if TYPE_CHECKING:
     from ..orm.objects.query import IQuery
-    from ..orm.objects.objects import Table
+    from ..orm.objects.objects import DefaultField, Table
 
 
 class FormTools:
@@ -430,9 +430,9 @@ class InputForm(FormTools):
         self.custom_css_dir = custom_css_dir
         self.form_title = form_title
 
-        self.verify_form_submit()
+        self._verify_form_submit()
 
-    def verify_form_submit(self):
+    def _verify_form_submit(self):
         if "jwt" in App.request.vars:
             jwt_decoded: dict = self.decode_jwt(App.request.vars["jwt"])
             if jwt_decoded.get("accepted") and self.form_controller is None:
@@ -448,7 +448,7 @@ class InputForm(FormTools):
         else:
             self.accepted = False
 
-    def GetFields(self):
+    def _get_fields(self):
         if self.fields:
             return [
                 field
@@ -458,23 +458,34 @@ class InputForm(FormTools):
         else:
             return DB.tables[self.table_name].fields
 
-    def HtmlInputForm(self) -> str:
+    def _html_field(self, field: DefaultField) -> str:
+        match field.field_type.lower():
+            case "text":
+                return TextField(
+                    _name=field.name,
+                    _id=field.name,
+                    placeholder=field.field_text or field.name,
+                ).__str__()
+            case _:
+                return Input(
+                    _name=field.name,
+                    _id=field.name,
+                    _type=self.get_field_type(
+                        self.table_name,
+                        field.name,
+                    ),
+                    placeholder=field.field_text or field.name,
+                ).__str__()
+
+    def _html_input_form(self) -> str:
         encoded_jwt = self.encode_jwt({"accepted": True})
 
         return Div(
             Form(
                 H1(self.form_title) if self.form_title else "",
                 *[
-                    Input(
-                        _name=field.name,
-                        _id=field.name,
-                        _type=self.get_field_type(
-                            self.table_name,
-                            field.name,
-                        ),
-                        placeholder=field.field_text or field.name,
-                    ).__str__()
-                    for field in self.GetFields()
+                    self._html_field(field)
+                    for field in self._get_fields()
                     if field.name != "id" and field.name not in self.exclude_fields
                 ],
                 P(text=self.error_msg, style="color: red;") if self.error_msg else "",
@@ -487,5 +498,5 @@ class InputForm(FormTools):
         ).__str__()
 
     def __str__(self):
-        form = self.HtmlInputForm()
+        form = self._html_input_form()
         return self.default_styling(self.custom_css_dir) + form

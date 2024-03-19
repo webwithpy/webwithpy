@@ -14,6 +14,14 @@ class HtmlTag:
         return self.__str__()
 
 
+class TextField(HtmlTag):
+    def __init__(self, **attrs: Any):
+        self.attrs = self.set_dict_attrs(attrs)
+
+    def __str__(self):
+        return f"<input {self.attrs}/>"
+
+
 class Form(HtmlTag):
     def __init__(self, *tags: str | HtmlTag, **attrs):
         self.attrs = self.set_dict_attrs(attrs)
@@ -36,8 +44,8 @@ class Label(HtmlTag):
 
 class Input(HtmlTag):
     def __init__(
-        self,
-        **attrs: Any,
+            self,
+            **attrs: Any,
     ):
         self.attrs = self.set_dict_attrs(attrs)
 
@@ -118,11 +126,11 @@ class A(HtmlTag):
     """
 
     def __init__(
-        self,
-        *tags: str | HtmlTag,
-        _class: str = "",
-        _href: str = "",
-        **attrs: str,
+            self,
+            *tags: str | HtmlTag,
+            _class: str = "",
+            _href: str = "",
+            **attrs: str,
     ):
         self._class = self.set_tag(f"class='{_class}'", _class)
         self._href = self.set_tag(f'href="{_href}"', _href)
@@ -139,11 +147,11 @@ class P(HtmlTag):
     """
 
     def __init__(
-        self,
-        text: str = "",
-        _class: str = "",
-        _href: str = "",
-        **attrs: str,
+            self,
+            text: str = "",
+            _class: str = "",
+            _href: str = "",
+            **attrs: str,
     ):
         self.text = text
         self._class = self.set_tag(f"class='{_class}'", _class)
