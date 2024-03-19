@@ -4,18 +4,21 @@ from webwithpy.orm import DB, Table, Field
 from webwithpy import run_server
 
 
-class Test(Table):
-    table_name = "test"
-    x = Field("int")
+class Video(Table):
+    table_name = "video"
+    video_name = Field("string")
+    video_description = Field("string")
+    url = Field("reference video_url.url")
+    uploaded_by = Field("reference auth_user.first_name")
 
 
-class Test2(Table):
-    table_name = "test2"
-    y = Field("int")
+class VideoUrl(Table):
+    table_name = "video_url"
+    url = Field("string")
 
 
-# db = DB("sqlite:/test.db")
-db = DB("mysql:/|sammy:helloWorld9!@localhost/wwp")
+db = DB("sqlite:/test.db")
+# db = DB("mysql:/|sammy:helloWorld9!@localhost/wwp")
 
 
 def test():
@@ -29,6 +32,5 @@ def test2():
 Router.bulk_add_routes(Route(test, "/", "ANY"), Route(test2, "/test", "GET"))
 
 if __name__ == "__main__":
-    db.create_tables(Test, Test2)
-    # ((db.test.id > 1) & (db.test2.id > 1)).select()
+    db.create_tables(VideoUrl, Video)
     run_server()
