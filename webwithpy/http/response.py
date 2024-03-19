@@ -101,6 +101,9 @@ class Response:
             self.contents = [self.error]
             self.headers = {}
 
+        if not self.content_type:
+            self.content_type = "text/html"
+
         response: str = (
             f"HTTP/{self.http_version} 200 OK\nContent-Type: {self.content_type}\n"
         )

@@ -37,7 +37,7 @@ class RouteData:
         url: str,
         method: str,
         template: Optional[Union[str, PathLike, None]] = "",
-        content_type: Optional[str] = "",
+        content_type: Optional[str] = "text/html",
         *args,
         **kwargs,
     ):
