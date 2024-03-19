@@ -40,6 +40,7 @@ class DB:
             if field.cache:
                 caching = True
 
+        for field_name, field in table_fields.items():
             self._set_field(
                 field=field, field_name=field_name, table_name=table_name, cache=caching
             )

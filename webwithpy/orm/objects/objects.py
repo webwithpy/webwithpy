@@ -1,9 +1,13 @@
-from typing import Any
+from __future__ import annotations
+from typing import TYPE_CHECKING, Any
 
 from ..drivers.driver import IDriver
 from .query import Query
 
 import re
+
+if TYPE_CHECKING:
+    from ..dialect.base import IDialect
 
 
 class Reference:
@@ -123,7 +127,6 @@ class ReferencedField(DefaultField):
         different columns in table you are referencing. For example imaging you're referencing id, you can display
         table_name.name instead of table_name.id
         """
-
         reference_data = self._parse_reference(reference)
         self.field_type = reference_data["field_type"]
         self.referenced_table = reference_data["table"]
