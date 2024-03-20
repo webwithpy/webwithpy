@@ -43,7 +43,6 @@ class BaseHTTPRequestParser:
             if not line:
                 break
 
-            print(line, line.split(":", 1))
             key, val = line.split(":", 1)
             headers[key] = val.strip()
 
