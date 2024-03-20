@@ -1,3 +1,4 @@
+from webwithpy.orm.auth import Auth
 from webwithpy.routing import Router, Route, ANY
 from webwithpy.html import SQLForm
 from webwithpy.orm import DB, Table, Field
@@ -33,4 +34,5 @@ Router.bulk_add_routes(Route(test, "/", "ANY"), Route(test2, "/test", "GET"))
 
 if __name__ == "__main__":
     db.create_tables(VideoUrl, Video)
+    auth = Auth(pretty_form=True)
     run_server()

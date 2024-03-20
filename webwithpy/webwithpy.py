@@ -63,7 +63,12 @@ async def load_clients(
             reader, writer = await asyncio.open_connection(
                 sock=client_conn, ssl=ssl_context
             )
-            client_request: str = (await reader.read(2048)).decode()
+            request = ""
+            while True:
+                chunk = (await reader.read(1024)).decode("utf8")
+                request += chunk
+                if len(chunk) < 1024:
+                    break
 
             # add request to app
             App.server_path = host
@@ -73,7 +78,7 @@ async def load_clients(
                     server=loop,
                     client=client_conn,
                     writer=writer,
-                    client_request=client_request,
+                    client_request=request,
                 ).handle_client()
             )
 

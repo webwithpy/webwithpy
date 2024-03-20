@@ -30,7 +30,7 @@ class Form(HtmlTag):
 
     def __str__(self):
         return (
-            f"<form {self.attrs}>{''.join([tag.__str__() for tag in self.tags])}</form>"
+            f"<form enctype=multipart/form-data {self.attrs}>{''.join([tag.__str__() for tag in self.tags])}</form>"
         )
 
 

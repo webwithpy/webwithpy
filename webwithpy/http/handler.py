@@ -1,12 +1,9 @@
-from ..exeptions.HttpExceptions import HttpException, BadRequest, ServerError
-from ..exeptions.RouteExceptions import RouteException, RouteNotFound
-from ..helper.async_handler import HandleAsync
+from ..exeptions.RouteExceptions import RouteNotFound
 from ..routing.router import Router
 from .response import Response
-from .request import Request
+from .request import MultipartHTTPRequestParser, FormURLEncodedHTTPRequestParser
 from ..app import App
 from asyncio import AbstractEventLoop, StreamWriter
-from pathlib import Path
 import socket
 import traceback
 import uuid
@@ -23,7 +20,7 @@ class HTTPHandler:
         self.server = server
         self.client = client
         self.writer = writer
-        App.request = Request(client_request)
+        App.request = self.choose_parser(client_request)
 
         session = self.manage_session()
         self.resp: Response = Response(session)
@@ -67,6 +64,19 @@ class HTTPHandler:
         if "session" not in App.request.cookies:
             return self.generate_session()
         return App.request.cookies["session"]
+
+    @classmethod
+    def choose_parser(cls, raw_request: str):
+        header, _ = raw_request.split("\r\n\r\n", 1)
+        for line in header.split("\r\n"):
+            if line.startswith("Content-Type:"):
+                content_type = line.split(": ")[1]
+                if "multipart/form-data" in content_type:
+                    return MultipartHTTPRequestParser(raw_request)
+                elif "application/x-www-form-urlencoded" in content_type:
+                    return FormURLEncodedHTTPRequestParser(raw_request)
+        # Default to MultipartHTTPRequestParser if content type not found
+        return MultipartHTTPRequestParser(raw_request)
 
     @classmethod
     def generate_session(cls):

@@ -1,109 +1,57 @@
-from urllib.parse import unquote
+from requests_toolbelt.multipart import decoder
 
 
-class Request:
-    """
-    given request from asyncio socket -> http/https
-    currently only tested under https
-    """
+class BaseHTTPRequestParser:
+    def __init__(self, raw_request: str):
+        raw_request = raw_request.replace("\r", "")
 
-    def __init__(self, req_header: str):
-        req_header_as_dict = self._headers_to_dict(req_header)
-        self.path, self.vars = self._parse_path(
-            req_header_as_dict.get("path", "GET / HTTP/1.1")
+        self.method, self.path, self.query_params, self.form_data = self._parse_request(
+            raw_request
         )
-        # ALL FORM DATA IS ONLY ACCEPTED VIA <form method="POST">!!
-        self.form_data: dict = req_header_as_dict.get("form_data", {})
 
-        # Type of the connection send to the user
-        self.connection_type = req_header_as_dict.get("Connection", "?!")
+        self.raw_headers = self._get_raw_headers(raw_request)
+        self.cookies = self._parse_cookies(self.raw_headers["Cookie"])
 
-        # how much content is send
-        self.content_length = req_header_as_dict.get("Content-Length", "/")
+    def _parse_request(self, raw_request):
+        header, body = self._extract_header_and_body(raw_request)
+        method, path, query_params = self._parse_header(header)
+        form_data = self._parse_body(header, body)
+        return method, path, query_params, form_data
 
-        # where the content came from
-        self.origin = req_header_as_dict.get("Origin", None)
+    @staticmethod
+    def _extract_header_and_body(raw_request):
+        return raw_request.split("\n\n", 1)
 
-        # cookies and path
-        self.method = self._parse_method(req_header_as_dict.get("path", "ANY"))
-        self.cookies = self._parse_cookies(req_header_as_dict.get("Cookie", ""))
+    @staticmethod
+    def _parse_header(header):
+        method, path, header = header.split(" ", 2)
+        path_parts = path.split("?")
+        path = path_parts[0]
+        query_params = {}
 
-    @classmethod
-    def _headers_to_dict(cls, full_header: str) -> dict:
-        """
-        makes so that a given header is turned into a dictionary
-        """
-        split_full_header = full_header.split("\n")
-        header_dict = {}
-        for header in split_full_header:
-            split_header = header.split(": ", 2)
+        if len(path_parts) > 1:
+            query_params = dict(param.split("=") for param in path_parts[1].split("&"))
 
-            # if the len of the split_header is 1(aka it is not split it must be the path or form_data
-            if len(split_header) == 1:
-                if "GET" in split_header[0] or "POST" in split_header[0]:
-                    header_dict["path"] = split_header[0]
-                elif "=" in split_header[0]:
-                    header_dict["form_data"] = cls._extract_vars_from_path(
-                        split_header[0]
-                    )
-                continue
+        return method, path, query_params
 
-            # this is an empty line
-            elif len(split_header) < 1:
-                continue
+    @staticmethod
+    def _get_raw_headers(request: str):
+        # we use [:1] here to remove http type from the header as it is not needed
+        header = request.split("\n")[1:]
+        headers = {}
+        for line in header:
+            if not line:
+                break
 
-            # turn this into a dict
-            header_dict[split_header[0]] = split_header[1]
+            print(line, line.split(":", 1))
+            key, val = line.split(":", 1)
+            headers[key] = val.strip()
 
-        return header_dict
+        return headers
 
-    @classmethod
-    def _parse_method(cls, path_header: str):
-        """
-        I know PUT also exists however it is not supported(at least not before 1.0)
-        :param path_header: example 'GET / HTTP/1.1'
-        :return: 'GET' or 'POST'
-        """
-        return "GET" if "GET" in path_header else "POST"
-
-    @classmethod
-    def _extract_vars_from_path(cls, variable_side_path: str) -> dict:
-        """
-        variable side path is everything after the ? in 127.0.0.1:8000/test?var1=1
-        aka variable side path is in this case 'var1=1'
-        """
-        # separates all variables from variable side path
-        # result: var1=1,var2=1 -> ['var1=1', 'var2=2']
-        split_vars = variable_side_path.strip().split("&")
-        # return the variables as a dictionary
-        return {
-            k: unquote(v) for k, v in [split_var.split("=") for split_var in split_vars]
-        }
-
-    @classmethod
-    def _parse_path(cls, path_header: str):
-        """
-        :param path_header: example 'GET / HTTP/1.1'
-        :return: url true path
-        """
-        path_split = path_header.split(" ")[1].split("?")
-
-        if len(path_split) == 1:
-            return path_split[0], {}
-
-        return [path_split[0], cls._vars_to_dict(path_split[1])]
-
-    @classmethod
-    def _parse_host(cls, host_header: str):
-        """
-        get where url of the client
-        """
-        return host_header.split(" ")[1]
-
-    @classmethod
-    def _HTTP_type(cls, path_header: str) -> str:
-        # type of the http used
-        return path_header.split(" ")[1]
+    @staticmethod
+    def _parse_body(header, body):
+        raise NotImplementedError("Subclasses must implement parse_body method")
 
     @classmethod
     def _parse_cookies(cls, cookies_as_str: str) -> dict:
@@ -118,20 +66,49 @@ class Request:
 
         return cookies_dict
 
-    @classmethod
-    def _vars_to_dict(cls, kwargs: str) -> dict:
-        """
-        turns http variables to dict
-        """
-        if len(kwargs) == 0:
+
+class MultipartHTTPRequestParser(BaseHTTPRequestParser):
+    @staticmethod
+    def _parse_body(header, body):
+        content_type = None
+        for line in header.split("\r\n"):
+            if line.startswith("Content-Type:"):
+                content_type = line.split(": ")[1]
+
+        if content_type and "multipart/form-data" in content_type:
+            multipart_decoder = decoder.MultipartDecoder(body.encode(), content_type)
+            form_data = {}
+            for part in multipart_decoder.parts:
+                if part.headers.get(b"Content-Disposition"):
+                    content_disposition = part.headers[b"Content-Disposition"].decode()
+                    disposition_params = {}
+                    for kv in content_disposition.split("; "):
+                        kv_split = kv.split("=")
+                        if len(kv_split) == 1:
+                            disposition_params[kv_split[0]] = None
+                        else:
+                            disposition_params[kv_split[0]] = kv_split[1].strip()
+
+                    if "name" in disposition_params:
+                        form_data[disposition_params["name"]] = part.content.decode()
+            return form_data
+        else:
             return {}
 
-        # vars dict
-        var_dict = {}
-        items = kwargs.split("&")
-        for item in items:
-            # key, value
-            k, v = item.split("=")
-            var_dict[k] = v
 
-        return var_dict
+class FormURLEncodedHTTPRequestParser(BaseHTTPRequestParser):
+    @staticmethod
+    def _parse_body(header, body):
+        content_type = None
+        for line in header.split("\r\n"):
+            if line.startswith("Content-Type:"):
+                content_type = line.split(": ")[1]
+
+        if content_type and "application/x-www-form-urlencoded" in content_type:
+            form_data = {}
+            for param in body.split("&"):
+                key, value = param.split("=")
+                form_data[key] = value
+            return form_data
+        else:
+            return {}
