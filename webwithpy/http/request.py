@@ -70,7 +70,7 @@ class MultipartHTTPRequestParser(BaseHTTPRequestParser):
     @staticmethod
     def _parse_body(header, body):
         content_type = None
-        for line in header.split("\r\n"):
+        for line in header.split("\n"):
             if line.startswith("Content-Type:"):
                 content_type = line.split(": ")[1]
 
@@ -99,7 +99,7 @@ class FormURLEncodedHTTPRequestParser(BaseHTTPRequestParser):
     @staticmethod
     def _parse_body(header, body):
         content_type = None
-        for line in header.split("\r\n"):
+        for line in header.split("\n"):
             if line.startswith("Content-Type:"):
                 content_type = line.split(": ")[1]
 
