@@ -70,8 +70,6 @@ async def load_clients(
                 if len(chunk) < 1024:
                     break
 
-            print([request])
-
             # add request to app
             App.server_path = host
 
