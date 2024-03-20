@@ -153,11 +153,11 @@ class SQLForm(FormTools):
         """
 
         # check if the form has given us any data(button click or form-submit)
-        if "jwt" in App.requests.query_params:
+        if "jwt" in App.request.query_params:
             # decode the given data and check if the actual user has sent us this data
             # this is a hopeful attempt to stop any hacker if they got past any user group check(like they are acting to
             # be admin by being some1 else)
-            jwt_decoded = self.decode_jwt(App.requests.query_params["jwt"])
+            jwt_decoded = self.decode_jwt(App.request.query_params["jwt"])
 
             # give the user the insert form
             if "insert" in jwt_decoded:
@@ -433,8 +433,8 @@ class InputForm(FormTools):
         self._verify_form_submit()
 
     def _verify_form_submit(self):
-        if "jwt" in App.requests.query_params:
-            jwt_decoded: dict = self.decode_jwt(App.requests.query_params["jwt"])
+        if "jwt" in App.request.query_params:
+            jwt_decoded: dict = self.decode_jwt(App.request.query_params["jwt"])
             if jwt_decoded.get("accepted") and self.form_controller is None:
                 self.accepted = True
                 self.form_data = App.request.form_data
