@@ -63,7 +63,6 @@ class AuthValidator:
         """
         validates if a given email is valid
         """
-        print(form_data)
         if not re.match(r"[\w.]+@([\w-]+\.)+[\w-]{2,4}$", form_data.get("email")):
             form.error_msg = f"Invalid email given!"
             return False
