@@ -116,7 +116,11 @@ class Auth(AuthValidator):
         if form.accepted:
             user: dict = (
                 self.db.auth_user.email == form.form_data.get("email")
-            ).select(self.db.auth_user.id, self.db.auth_user.password)[0]
+            ).select(fields=["id", "password"])
+
+            if not user:
+                form.error_msg = "Email not found!"
+                return form
 
             from_pass = form.form_data.get("password").encode()
 

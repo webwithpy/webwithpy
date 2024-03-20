@@ -25,7 +25,7 @@ class Table:
         self.fields: list = fields or []
         self.caching = caching
 
-    def get_field(self, name: str):
+    def get_field(self, name: str) -> DefaultField | None:
         for field in self.fields:
             if field.name == name:
                 return field

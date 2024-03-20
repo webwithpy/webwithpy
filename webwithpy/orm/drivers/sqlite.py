@@ -8,6 +8,8 @@ from ..core import DB
 from sqlite3 import dbapi2 as sqlite
 from typing import TYPE_CHECKING, Any
 
+import bcrypt
+
 if TYPE_CHECKING:
     from ..objects.objects import DefaultField, Table
 
@@ -38,6 +40,15 @@ class SqliteDriver(IDriver):
 
     def insert(self, table: Table, items: dict) -> None:
         sql = DB.dialect.insert(table, items)
+
+        for field_name in items.keys():
+            field = DB.tables[table.name].get_field(field_name)
+            if field.encrypt:
+                salt = bcrypt.gensalt()
+                # Hashing the password
+                hashed = bcrypt.hashpw(items[field_name], salt)
+                items[field_name] = hashed
+
         self.execute_sql(sql, list(items.values()))
 
     def select(
