@@ -42,11 +42,12 @@ class SqliteDriver(IDriver):
         sql = DB.dialect.insert(table, items)
 
         for field_name in items.keys():
-            field = DB.tables[table.name].get_field(field_name)
+
+            field = DB.tables[table.table_name].get_field(field_name)
             if field.encrypt:
                 salt = bcrypt.gensalt()
                 # Hashing the password
-                hashed = bcrypt.hashpw(items[field_name], salt)
+                hashed = bcrypt.hashpw(items[field_name].encode(), salt)
                 items[field_name] = hashed
 
         self.execute_sql(sql, list(items.values()))

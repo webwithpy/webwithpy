@@ -3,11 +3,11 @@ from requests_toolbelt.multipart import decoder
 
 class BaseHTTPRequestParser:
     def __init__(self, raw_request: str):
-        raw_request = raw_request.replace("\r", "")
-
         self.method, self.path, self.query_params, self.form_data = self._parse_request(
             raw_request
         )
+
+        raw_request = raw_request.replace("\r", "")
 
         self.raw_headers = self._get_raw_headers(raw_request)
         self.cookies = self._parse_cookies(self.raw_headers["Cookie"])
@@ -16,11 +16,17 @@ class BaseHTTPRequestParser:
         header, body = self._extract_header_and_body(raw_request)
         method, path, query_params = self._parse_header(header)
         form_data = self._parse_body(header, body)
+        form_data = self._remove_quotes_from_keys(form_data)
+
         return method, path, query_params, form_data
 
     @staticmethod
+    def _remove_quotes_from_keys(input_dict):
+        return {key.replace('"', ''): value for key, value in input_dict.items()}
+
+    @staticmethod
     def _extract_header_and_body(raw_request):
-        return raw_request.split("\n\n", 1)
+        return raw_request.split("\r\n\r\n", 1)
 
     @staticmethod
     def _parse_header(header):

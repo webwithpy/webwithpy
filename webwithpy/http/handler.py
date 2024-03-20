@@ -67,8 +67,8 @@ class HTTPHandler:
 
     @classmethod
     def choose_parser(cls, raw_request: str):
-        header, _ = raw_request.split("\n\n", 1)
-        for line in header.split("\n"):
+        headers = raw_request.split("\r\n")
+        for line in headers:
             if line.startswith("Content-Type:"):
                 content_type = line.split(": ")[1]
                 if "multipart/form-data" in content_type:
