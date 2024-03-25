@@ -15,7 +15,7 @@ class HTTPHandler:
         server: AbstractEventLoop,
         client: socket.socket,
         writer: StreamWriter,
-        client_request: str,
+        client_request: bytes,
     ):
         self.server = server
         self.client = client
@@ -66,14 +66,14 @@ class HTTPHandler:
         return App.request.cookies["session"]
 
     @classmethod
-    def choose_parser(cls, raw_request: str):
-        headers = raw_request.split("\r\n")
+    def choose_parser(cls, raw_request: bytes):
+        headers = raw_request.split(b"\r\n")
         for line in headers:
-            if line.startswith("Content-Type:"):
-                content_type = line.split(": ")[1]
-                if "multipart/form-data" in content_type:
+            if line.startswith(b"Content-Type:"):
+                content_type = line.split(b": ")[1]
+                if b"multipart/form-data" in content_type:
                     return MultipartHTTPRequestParser(raw_request)
-                elif "application/x-www-form-urlencoded" in content_type:
+                elif b"application/x-www-form-urlencoded" in content_type:
                     return FormURLEncodedHTTPRequestParser(raw_request)
         # Default to MultipartHTTPRequestParser if content type not found
         return MultipartHTTPRequestParser(raw_request)

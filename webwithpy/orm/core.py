@@ -19,7 +19,8 @@ class DB:
         self._settings = DB._settings
 
         self._init_driver(self._settings.db_type)
-        DB.tables = {}
+        if not DB.tables:
+            DB.tables = {}
 
     def create_table(self, table: Type[Table]):
         id_field = Field(DB.dialect.primary_key())

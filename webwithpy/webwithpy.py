@@ -1,7 +1,6 @@
-import sys
+import base64
 import socket
 import asyncio
-import warnings
 import ssl
 
 from asyncio.events import AbstractEventLoop
@@ -63,13 +62,12 @@ async def load_clients(
             reader, writer = await asyncio.open_connection(
                 sock=client_conn, ssl=ssl_context
             )
-            request = ""
+            request = bytes()
             while True:
-                chunk = (await reader.read(1024)).decode("utf8")
+                chunk = await reader.read(1024)
                 request += chunk
                 if len(chunk) < 1024:
                     break
-
             # add request to app
             App.server_path = host
 

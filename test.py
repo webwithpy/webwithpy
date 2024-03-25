@@ -1,6 +1,6 @@
 from webwithpy.orm.auth import Auth
 from webwithpy.routing import Router, Route, ANY
-from webwithpy.html import SQLForm
+from webwithpy.html import InputForm
 from webwithpy.orm import DB, Table, Field
 from webwithpy import run_server
 
@@ -18,12 +18,20 @@ class VideoUrl(Table):
     url = Field("string")
 
 
+class Temp(Table):
+    table_name = "temp"
+    name = Field("string")
+    upload = Field("image")
+
+
 db = DB("sqlite:/test.db")
 # db = DB("mysql:/|sammy:helloWorld9!@localhost/wwp")
 
 
 def test():
-    return SQLForm((db.test.id > 0), fields=[db.test.x]).as_html()
+    form = InputForm(db.temp, "test")
+
+    return form
 
 
 def test2():
@@ -33,6 +41,7 @@ def test2():
 Router.bulk_add_routes(Route(test, "/", "ANY"), Route(test2, "/test", "GET"))
 
 if __name__ == "__main__":
-    db.create_tables(VideoUrl, Video)
+    db.create_tables(VideoUrl, Video, Temp)
+    print(DB.tables)
     auth = Auth(pretty_form=True)
     run_server()
