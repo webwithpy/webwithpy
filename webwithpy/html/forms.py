@@ -433,18 +433,12 @@ class InputForm(FormTools):
         self._verify_form_submit()
 
     def _verify_form_submit(self):
-        if "jwt" in App.request.query_params:
-            jwt_decoded: dict = self.decode_jwt(App.request.query_params["jwt"])
-            if jwt_decoded.get("accepted") and self.form_controller is None:
-                self.accepted = True
-                self.form_data = App.request.form_data
-            elif jwt_decoded.get("accepted") and self.form_controller(
-                self, App.request.form_data
-            ):
-                self.accepted = True
-                self.form_data = App.request.form_data
-            else:
-                self.accepted = False
+        if self.form_controller is None:
+            self.accepted = True
+            self.form_data = App.request.form_data
+        elif self.form_controller(self, App.request.form_data):
+            self.accepted = True
+            self.form_data = App.request.form_data
         else:
             self.accepted = False
 
@@ -478,8 +472,6 @@ class InputForm(FormTools):
                 ).__str__()
 
     def _html_input_form(self) -> str:
-        encoded_jwt = self.encode_jwt({"accepted": True})
-
         return Div(
             Form(
                 H1(self.form_title) if self.form_title else "",
@@ -490,7 +482,7 @@ class InputForm(FormTools):
                 ],
                 P(text=self.error_msg, style="color: red;") if self.error_msg else "",
                 Div(self.submit_button()),
-                action=url(App.request.path, jwt=encoded_jwt),
+                action=url(App.request.path),
                 method="POST",
                 _class="container",
             ),

@@ -42,6 +42,5 @@ Router.bulk_add_routes(Route(test, "/", "ANY"), Route(test2, "/test", "GET"))
 
 if __name__ == "__main__":
     db.create_tables(VideoUrl, Video, Temp)
-    print(DB.tables)
     auth = Auth(pretty_form=True)
     run_server()
