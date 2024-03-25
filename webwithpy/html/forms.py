@@ -435,8 +435,8 @@ class InputForm(FormTools):
     def _valid_form_data(self):
         fields = self._get_fields()
 
-        for field_name in App.request.form_data.keys():
-            if field_name not in fields:
+        for field_name in fields:
+            if field_name not in App.request.form_data.keys():
                 return False
 
         return True
