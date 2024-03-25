@@ -432,7 +432,20 @@ class InputForm(FormTools):
 
         self._verify_form_submit()
 
+    def _valid_form_data(self):
+        fields = self._get_fields()
+
+        for field_name in App.request.form_data.keys():
+            if field_name not in fields:
+                return False
+
+        return True
+
     def _verify_form_submit(self):
+        if not self._valid_form_data():
+            self.accepted = False
+            return
+
         if self.form_controller is None:
             self.accepted = True
             self.form_data = App.request.form_data
