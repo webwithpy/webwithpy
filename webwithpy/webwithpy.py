@@ -68,6 +68,13 @@ async def load_clients(
                 request += chunk
                 if len(chunk) < 1024:
                     break
+
+            if len(request) == 0:
+                await writer.drain()
+                writer.close()
+                await writer.wait_closed()
+                continue
+
             # add request to app
             App.server_path = host
 
