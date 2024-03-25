@@ -92,3 +92,43 @@ if __name__ == "__main__":
 ```
 
 As you can see we can find out if someone submitted the form to the webserver and then print out the data from the form.
+<br>
+### Since v0.7.1
+SQLGrids and Input forms now fully support file uploads, here is an example of how to upload a file to a file and save
+it server-side.
+
+Note: For this it is recommended you use PIL for saving images
+
+```python
+from webwithpy.routing import ANY
+from webwithpy.html import InputForm
+from webwithpy.orm import DB, Table, Field
+from webwithpy import run_server
+from PIL import Image
+from io import BytesIO
+
+db = DB("sqlite:/test.db")
+
+
+class Test(Table):
+    table_name = "test"
+    name = Field("string")
+    upload = Field("image")
+
+
+@ANY("/")
+def upload():
+    form = InputForm(db.test, form_title="upload")
+
+    if form.accepted:
+        img = Image.open(BytesIO(form.form_data["upload"]))
+        img.save("test.png")
+
+    return form
+
+
+if "__main__" == __name__:
+    db.create_table(Test)
+    run_server()
+
+```

@@ -460,6 +460,10 @@ class InputForm(FormTools):
                     _id=field.name,
                     placeholder=field.field_text or field.name,
                 ).__str__()
+            case "image" | "blob":
+                return Input(
+                    _name=field.name, _id=field.name, _type="file", _accept="image/*"
+                ).__str__()
             case _:
                 return Input(
                     _name=field.name,
