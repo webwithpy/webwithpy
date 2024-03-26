@@ -42,7 +42,6 @@ class SqliteDriver(IDriver):
         sql = DB.dialect.insert(table, items)
 
         for field_name in items.keys():
-
             field = DB.tables[table.table_name].get_field(field_name)
             if field.encrypt:
                 salt = bcrypt.gensalt()
@@ -56,13 +55,16 @@ class SqliteDriver(IDriver):
         self,
         query: Query | ListedQuery,
         fields: list[str] = None,
+        select_operation: dict[str, str] = None,
         order_by: DefaultField = None,
     ) -> list[Any]:
         if fields is None:
             fields = []
 
         s_fields, stmt = query.build()
-        sql = DB.dialect.select(stmt, query.__tables__(), False, fields, order_by)
+        sql = DB.dialect.select(
+            stmt, query.__tables__(), select_operation, False, fields, order_by
+        )
 
         return self.execute_sql(sql, s_fields)
 

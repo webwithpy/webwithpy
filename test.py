@@ -1,46 +1,30 @@
-from webwithpy.orm.auth import Auth
-from webwithpy.routing import Router, Route, ANY
+from webwithpy.routing import ANY
 from webwithpy.html import InputForm
 from webwithpy.orm import DB, Table, Field
 from webwithpy import run_server
+from PIL import Image
+from io import BytesIO
+
+db = DB("sqlite:/test.db")
 
 
-class Video(Table):
-    table_name = "video"
-    video_name = Field("string")
-    video_description = Field("string")
-    url = Field("reference video_url.url")
-    uploaded_by = Field("reference auth_user.first_name")
-
-
-class VideoUrl(Table):
-    table_name = "video_url"
-    url = Field("string")
-
-
-class Temp(Table):
-    table_name = "temp"
+class Test(Table):
+    table_name = "test"
     name = Field("string")
     upload = Field("image")
 
 
-db = DB("sqlite:/test.db")
-# db = DB("mysql:/|sammy:helloWorld9!@localhost/wwp")
+@ANY("/")
+def upload():
+    form = InputForm(db.test, form_title="upload")
 
-
-def test():
-    form = InputForm(db.temp, "test")
+    if form.accepted:
+        img = Image.open(BytesIO(form.form_data["upload"]))
+        img.save("test.png")
 
     return form
 
 
-def test2():
-    return "Hello World"
-
-
-Router.bulk_add_routes(Route(test, "/", "ANY"), Route(test2, "/test", "GET"))
-
-if __name__ == "__main__":
-    db.create_tables(VideoUrl, Video, Temp)
-    auth = Auth(pretty_form=True)
+if "__main__" == __name__:
+    db.create_table(Test)
     run_server()

@@ -54,6 +54,7 @@ class MysqlDriver(IDriver):
         self,
         query: Query | ListedQuery,
         fields: list[str] = None,
+        select_operation: dict[str, str] = None,
         order_by: DefaultField = None,
     ) -> list[Any]:
         s_fields, stmt = query.build()

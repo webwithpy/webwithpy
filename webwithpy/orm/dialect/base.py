@@ -23,6 +23,7 @@ class IDialect:
         cls,
         query: str,
         tables: list[str],
+        select_operation: dict[str, str],
         distinct: bool,
         fields: list[str],
         order_by: DefaultField,

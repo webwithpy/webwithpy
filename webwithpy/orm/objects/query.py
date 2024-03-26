@@ -20,10 +20,26 @@ class IQuery:
     def __tables__(self) -> list[str]:
         ...
 
-    def select(self, fields: list[str] = None, order_by: DefaultField = None):
+    def select(
+        self,
+        fields: list[str] = None,
+        select_operation: dict[str, str] = None,
+        order_by: DefaultField = None,
+    ):
+        """
+        :param fields: list of fields to select in query
+        :param select_operation: key is the type of operation like 'COUNT' and value is the field to perform the
+         operation on
+        :param order_by: order list by parameter
+        """
         fields = [] if not fields else fields
 
-        return self.driver.select(query=self, fields=fields, order_by=order_by)
+        return self.driver.select(
+            query=self,
+            fields=fields,
+            select_operation=select_operation,
+            order_by=order_by,
+        )
 
     def update(self, **items: Any) -> None:
         self.driver.update(self, items)
