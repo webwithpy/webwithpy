@@ -436,7 +436,6 @@ class InputForm(FormTools):
         fields = self._get_fields()
 
         for field in fields:
-            print(field.name, App.request.form_data.keys())
             if field.name not in App.request.form_data.keys():
                 return False
 

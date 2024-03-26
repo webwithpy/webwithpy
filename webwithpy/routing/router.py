@@ -1,4 +1,5 @@
 import os
+import pkgutil
 from os import PathLike
 from typing import Any, Union, Callable, Optional
 from pathlib import Path
@@ -174,5 +175,7 @@ class Router:
     async def _handle_static_file(cls, route: str, method: str):
         if (file := Router._static_file_by_route(route)) is not None:
             return file, "", f"text/{Router._parse_suffix(Path(route).suffix)}"
-
+        elif route == "/favicon.ico":
+            file = pkgutil.get_data(__name__, "../static/favicon.ico")
+            return "", "", ""
         raise RouteNotFound(route, method)
