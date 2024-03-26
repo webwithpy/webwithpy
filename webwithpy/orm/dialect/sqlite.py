@@ -37,7 +37,7 @@ class SqliteDialect(IDialect):
         cls,
         query: str,
         tables: list[str],
-        select_operation: dict[str, str],
+        select_operation: Operation,
         distinct: bool,
         fields: list[str],
         order_by: Operation,
@@ -47,12 +47,11 @@ class SqliteDialect(IDialect):
         non_join_table = tables.pop(0)
         join = "\n".join([cls.i_join(name) for name in tables])
         distinct_stmt = "DISTINCT " if distinct else ""
-        order_by = f"ORDER BY {order_by}" if order_by else ""
-        group_by = f"GROUP BY {group_by}" if group_by else ""
+        order_by = f"ORDER BY {order_by.__str__()}" if order_by else ""
+        group_by = f"GROUP BY {group_by.__str__()}" if group_by else ""
 
         if select_operation:
-            key = list(select_operation.keys())[0]
-            fields = f"{key}({select_operation[key]}), " + fields
+            fields = f"{select_operation.__str__()}, " + fields
 
         return f"SELECT {distinct_stmt}{fields} FROM {non_join_table} {join} WHERE {query} {order_by} {group_by}"
 
