@@ -53,7 +53,7 @@ class MysqlDialect(IDialect):
         if select_operation:
             fields = f"{select_operation.__str__()}, " + fields
 
-        return f"SELECT {distinct_stmt}{fields} FROM {non_join_table} {join} WHERE {query} {order_by} {group_by}"
+        return f"SELECT {distinct_stmt}{fields} FROM {non_join_table} {join} WHERE {query} {group_by} {order_by}"
 
     @classmethod
     def update(cls, query: str, tables: list[str], items: dict[str, Any]):
