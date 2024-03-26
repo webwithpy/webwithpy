@@ -106,6 +106,9 @@ class DefaultField:
     def __gt__(self, other):
         return Query(self.driver, self, other, ">")
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
         return f"{self.table_name}.{self.name}"
 
@@ -169,7 +172,7 @@ class Field(DefaultField):
 
 
 class Operation:
-    def __init__(self, operation: str, field: DefaultField, *ops: str):
+    def __init__(self, field: DefaultField, operation: str | None, *ops: str):
         self.operation = operation
         self.field = field
         self.extra_ops: list[str] = list(ops)
