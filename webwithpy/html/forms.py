@@ -433,13 +433,16 @@ class InputForm(FormTools):
         self._verify_form_submit()
 
     def _valid_form_data(self):
+        """
+        returns true if there is any field in the upload request.
+        """
         fields = self._get_fields()
 
         for field in fields:
-            if field.name not in App.request.form_data.keys():
-                return False
+            if field.name in App.request.form_data.keys():
+                return True
 
-        return True
+        return False
 
     def _verify_form_submit(self):
         if not self._valid_form_data():
