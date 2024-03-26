@@ -52,7 +52,7 @@ class MysqlDialect(IDialect):
 
         if select_operation:
             key = list(select_operation.keys())[0]
-            fields = f"{key}({select_operation[key]})"
+            fields = f"{key}({select_operation[key]}), " + fields
 
         return f"SELECT {distinct_stmt}{fields} FROM {non_join_table} {join} WHERE {query} {order_by} {group_by}"
 
