@@ -9,7 +9,7 @@ import bcrypt
 
 if TYPE_CHECKING:
     from ..objects.query import ListedQuery, Query
-    from ..objects.objects import DefaultField, Table
+    from ..objects.objects import DefaultField, Operation, Table
 
 
 class MysqlDriver(IDriver):
@@ -54,11 +54,12 @@ class MysqlDriver(IDriver):
         self,
         query: Query | ListedQuery,
         fields: list[str] = None,
-        select_operation: dict[str, str] = None,
-        order_by: DefaultField = None,
+        select_operation: Operation = None,
+        order_by: Operation = None,
+        group_by: Operation = None
     ) -> list[Any]:
         s_fields, stmt = query.build()
-        sql = DB.dialect.select(stmt, query.__tables__(), False, fields, order_by)
+        sql = DB.dialect.select(stmt, query.__tables__(), False, fields, order_by, group_by)
 
         return self.execute_sql(sql, s_fields)
 

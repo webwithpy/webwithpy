@@ -166,3 +166,22 @@ class ReferencedField(DefaultField):
 
 class Field(DefaultField):
     pass
+
+
+class Operation:
+    def __init__(self, operation: str, field: DefaultField, *ops: str):
+        self.operation = operation
+        self.field = field
+        self.extra_ops: list[str] = list(ops)
+
+    def add_operation(self, op):
+        self.extra_ops.append(op)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        if self.operation:
+            return f"{self.operation}({self.field.__str__()}) {' '.join(self.extra_ops)}"
+        else:
+            return f"{self.field.__str__()} {' '.join(self.extra_ops)}"

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ..objects.query import ListedQuery, Query
-    from ..objects.objects import DefaultField, Table
+    from ..objects.objects import DefaultField, Operation, Table
 
 
 def dict_factory(cursor, row):
@@ -32,8 +32,9 @@ class IDriver:
         self,
         query: Query | ListedQuery,
         fields: list[str] = None,
-        select_operation: dict[str, str] = None,
-        order_by: DefaultField = None,
+        select_operation: Operation = None,
+        order_by: Operation = None,
+        group_by: Operation = None
     ) -> list[Any]:
         ...
 

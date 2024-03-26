@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .objects import DefaultField
+    from .objects import DefaultField, Operation
     from ..drivers.driver import IDriver
 
 
@@ -23,14 +23,16 @@ class IQuery:
     def select(
         self,
         fields: list[str] = None,
-        select_operation: dict[str, str] = None,
-        order_by: DefaultField = None,
+        select_operation: Operation = None,
+        order_by: Operation = None,
+        group_by: Operation = None,
     ):
         """
         :param fields: list of fields to select in query
         :param select_operation: key is the type of operation like 'COUNT' and value is the field to perform the
          operation on
         :param order_by: order list by parameter
+        :param group_by: group list by parameter
         """
         fields = [] if not fields else fields
 
@@ -39,6 +41,7 @@ class IQuery:
             fields=fields,
             select_operation=select_operation,
             order_by=order_by,
+            group_by=group_by
         )
 
     def update(self, **items: Any) -> None:

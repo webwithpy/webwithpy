@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..objects.objects import Table, DefaultField
+    from ..objects.objects import Operation, Table, DefaultField
 
 
 class IDialect:
@@ -23,10 +23,11 @@ class IDialect:
         cls,
         query: str,
         tables: list[str],
-        select_operation: dict[str, str],
+        select_operation: Operation,
         distinct: bool,
         fields: list[str],
-        order_by: DefaultField,
+        order_by: Operation,
+        group_by: Operation,
     ):
         ...
 

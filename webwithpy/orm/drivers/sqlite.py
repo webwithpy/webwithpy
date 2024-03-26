@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 import bcrypt
 
 if TYPE_CHECKING:
-    from ..objects.objects import DefaultField, Table
+    from ..objects.objects import DefaultField, Operation, Table
 
 
 class SqliteDriver(IDriver):
@@ -55,15 +55,16 @@ class SqliteDriver(IDriver):
         self,
         query: Query | ListedQuery,
         fields: list[str] = None,
-        select_operation: dict[str, str] = None,
-        order_by: DefaultField = None,
+        select_operation: Operation = None,
+        order_by: Operation = None,
+        group_by: Operation = None,
     ) -> list[Any]:
         if fields is None:
             fields = []
 
         s_fields, stmt = query.build()
         sql = DB.dialect.select(
-            stmt, query.__tables__(), select_operation, False, fields, order_by
+            stmt, query.__tables__(), select_operation, False, fields, order_by, group_by
         )
 
         return self.execute_sql(sql, s_fields)
