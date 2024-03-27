@@ -8,6 +8,11 @@ class BaseHTTPRequestParser:
         self.method, self.path, self.query_params, self.form_data = self._parse_request(
             raw_request
         )
+
+        if "/" in self.path[1:]:
+            self.host, self.path = self.path[1:].split("/", 1)
+            self.path = f"/{self.path}"
+
         headers, _ = self._extract_header_and_body(raw_request)
         headers: str = headers.decode("utf-8")
         headers = headers.replace("\r", "")
