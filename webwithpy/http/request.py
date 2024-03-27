@@ -5,7 +5,6 @@ from requests_toolbelt.multipart import decoder
 
 class BaseHTTPRequestParser:
     def __init__(self, raw_request: bytes):
-        print(raw_request)
         self.method, self.path, self.query_params, self.form_data = self._parse_request(
             raw_request
         )
