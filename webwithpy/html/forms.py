@@ -3,7 +3,7 @@ from __future__ import annotations
 from ..app import App
 from ..http import url
 from ..http.redirect import Redirect
-from .pyhtml import TextField, Input, Span, Div, H4, H1, P, A, Form, H3
+from .pyhtml import HtmlTag, TextField, Input, Span, Div, H4, H1, P, A, Form, H3
 import pkgutil
 import jwt
 
@@ -417,6 +417,7 @@ class InputForm(FormTools):
         exclude_fields: list = None,
         fields: list = None,
         custom_css_dir: str = "",
+        extra_buttons: list[HtmlTag] = None,
     ):
         self.table = table
         self.driver = table.driver
@@ -429,6 +430,7 @@ class InputForm(FormTools):
         self.error_msg = ""
         self.custom_css_dir = custom_css_dir
         self.form_title = form_title
+        self.extra_buttons = extra_buttons if extra_buttons else []
 
         self._verify_form_submit()
 
@@ -501,7 +503,7 @@ class InputForm(FormTools):
                     if field.name != "id" and field.name not in self.exclude_fields
                 ],
                 P(text=self.error_msg, style="color: red;") if self.error_msg else "",
-                Div(self.submit_button()),
+                Div(self.submit_button(), *self.extra_buttons),
                 action=url(App.request.path),
                 method="POST",
                 _class="container",

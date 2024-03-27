@@ -1,4 +1,4 @@
-from ..html.forms import InputForm
+from ..html.forms import InputForm, A
 from ..http.redirect import Redirect
 from ..routing.router import Router, Route
 from .objects.objects import Table, Field
@@ -75,7 +75,7 @@ class Auth(AuthValidator):
         login_url: str = "/login",
         registration_url: str = "/register",
         pretty_form: bool = False,
-        custom_css: str = ""
+        custom_css: str = "",
     ):
         self.custom_css = custom_css
         self.pretty_form = pretty_form
@@ -92,17 +92,28 @@ class Auth(AuthValidator):
         if logged_in():
             return Redirect("/")
 
+        # add button to form so that we also are able to go to the /login page without needing the user to touch the url
+        login_href_button = A(
+            "Register",
+            _href="/register",
+            _class="button btn btn-default btn-secondary insert",
+        )
+
         if self.pretty_form:
             form = InputForm(
                 self.db.auth_user,
                 fields=["email", "password"],
                 form_title="Login",
-                custom_css_dir="../static/improved_reg_form.css" if not self.custom_css else self.custom_css,
+                custom_css_dir="../static/improved_reg_form.css"
+                if not self.custom_css
+                else self.custom_css,
+                extra_buttons=[login_href_button],
             )
         else:
             form = InputForm(
                 self.db.auth_user,
                 fields=["email", "password"],
+                extra_buttons=[login_href_button],
             )
 
         # logic if form is accepted
@@ -132,6 +143,13 @@ class Auth(AuthValidator):
         if logged_in():
             return Redirect("/")
 
+        # add button to form so that we also are able to go to the /login page without needing the user to touch the url
+        login_href_button = A(
+            "Login",
+            _href="/login",
+            _class="button btn btn-default btn-secondary insert",
+        )
+
         if self.pretty_form:
             form = InputForm(
                 self.db.auth_user,
@@ -139,12 +157,14 @@ class Auth(AuthValidator):
                 exclude_fields=["uuid"],
                 form_title="Register",
                 custom_css_dir="../static/improved_reg_form.css",
+                extra_buttons=[login_href_button],
             )
         else:
             form = InputForm(
                 self.db.auth_user,
                 form_controller=self.register_form_controller,
                 exclude_fields=["uuid"],
+                extra_buttons=[login_href_button],
             )
 
         # register user and log him in if the form is validated correctly
@@ -159,7 +179,10 @@ class Auth(AuthValidator):
 
 def logged_in():
     db = DB(DB._settings.uri)
-    return len((db.auth_user.uuid == App.request.cookies.get("session", "")).select()) != 0
+
+    return (
+        len((db.auth_user.uuid == App.request.cookies.get("session", "")).select()) != 0
+    )
 
 
 def require_login(func):
