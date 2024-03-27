@@ -27,15 +27,6 @@ class AuthValidator:
         self.db = db
         self.min_pass_len = min_pass_len
 
-    def logged_in(self):
-        """
-        check if the user is logged in
-        """
-        return (
-            len((self.db.auth_user.uuid == App.request.cookies.get("session")).select())
-            != 0
-        )
-
     def register_form_controller(self, form: InputForm, form_data: dict):
         """
         validates if the field in the register form are valid/correct
@@ -84,7 +75,9 @@ class Auth(AuthValidator):
         login_url: str = "/login",
         registration_url: str = "/register",
         pretty_form: bool = False,
+        custom_css: str = ""
     ):
+        self.custom_css = custom_css
         self.pretty_form = pretty_form
         self.db = DB(DB._settings.uri)
         self.db.create_table(auth_table)
@@ -96,7 +89,7 @@ class Auth(AuthValidator):
         """
         login form for users
         """
-        if self.logged_in():
+        if logged_in():
             return Redirect("/")
 
         if self.pretty_form:
@@ -104,7 +97,7 @@ class Auth(AuthValidator):
                 self.db.auth_user,
                 fields=["email", "password"],
                 form_title="Login",
-                custom_css_dir="../static/improved_reg_form.css",
+                custom_css_dir="../static/improved_reg_form.css" if not self.custom_css else self.custom_css,
             )
         else:
             form = InputForm(
@@ -136,7 +129,7 @@ class Auth(AuthValidator):
         return form
 
     def register_form(self):
-        if self.logged_in():
+        if logged_in():
             return Redirect("/")
 
         if self.pretty_form:
@@ -162,3 +155,19 @@ class Auth(AuthValidator):
             return Redirect("/")
 
         return form
+
+
+def logged_in():
+    db = DB(DB._settings.uri)
+    return len((db.auth_user.uuid == App.request.cookies.get("session", "")).select()) != 0
+
+
+def require_login(func):
+    def wrapper(*args, **kwargs):
+        if not logged_in():
+            Redirect("/login")
+            pass
+        else:
+            return func(*args, **kwargs)
+
+    return wrapper

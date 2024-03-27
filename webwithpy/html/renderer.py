@@ -17,7 +17,7 @@ class DefaultRenderer:
     spacing = ""
 
     @classmethod
-    def generate_pre_code(cls, program: List[Stmt], spacing: str = "") -> str:
+    def generate_pre_code(cls, program: List[Stmt], spacing: str = "", **kwargs) -> str:
         # we might need to start with diff spacing for fast impl
         if len(spacing) > 0:
             cls.spacing = spacing
@@ -30,17 +30,17 @@ class DefaultRenderer:
                     copied_spacing = cls.spacing
                     cls.code = cls.spacing = ""
 
-                    block_code = cls.generate_pre_code(stmt.block_data)
+                    block_code = cls.generate_pre_code(stmt.block_data, **kwargs)
 
                     cls.blocks[stmt.name] = block_code
                     cls.code, cls.spacing = [copied_code, copied_spacing]
                 case "extends":
                     stmt: Extends
                     # simply render file and include it into the program
-                    cls.__render_at_file_path(file_path=stmt.file_path)
+                    cls.__render_at_file_path(file_path=stmt.file_path, **kwargs)
                 case "include":
                     stmt: Include
-                    cls.__render_at_file_path(file_path=stmt.file_path)
+                    cls.__render_at_file_path(file_path=stmt.file_path, **kwargs)
                 case "variable":
                     stmt: Variable | Block
                     # stmt.code is in this case the name of the block.
@@ -49,7 +49,9 @@ class DefaultRenderer:
                         for line in lines:
                             cls.code += f"{cls.spacing}{line}\n"
                     else:
-                        cls.code += f"{cls.spacing}html += str({stmt.code})\n"
+                        stmt.code = f"str({stmt.code})"
+
+                        cls.code += f"{cls.spacing}html += {stmt.code}\n"
                 case "request":
                     stmt: Request
                     result, _, _ = Router._call_func_by_route(stmt.request_path, "GET")
@@ -74,7 +76,7 @@ class DefaultRenderer:
 
     @classmethod
     def render(cls, program: List[Stmt], **kwargs) -> str:
-        code = cls.generate_pre_code(program=program)
+        code = cls.generate_pre_code(program=program, **kwargs)
         kwargs["html"] = ""
         kwargs["RenderBlock"] = RenderBlock
         exec(code, {}, kwargs)
@@ -85,13 +87,12 @@ class DefaultRenderer:
     def render_pre(cls, code, **kwargs):
         kwargs["html"] = ""
         kwargs["RenderBlock"] = RenderBlock
-
         exec(code, {}, kwargs)
 
         return kwargs["html"]
 
     @classmethod
-    def __render_at_file_path(cls, file_path: str) -> None:
+    def __render_at_file_path(cls, file_path: str, **kwargs) -> None:
         """
         when a file is for example extended we will need to parse that one too.
         the rendered python will be placed where the extends happens
@@ -104,5 +105,5 @@ class DefaultRenderer:
 
         program = parser.parse()
 
-        code = DefaultRenderer.generate_pre_code(program)
+        code = DefaultRenderer.generate_pre_code(program, **kwargs)
         cls.code = code

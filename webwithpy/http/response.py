@@ -76,7 +76,7 @@ class Response:
         tokens = lexer.lex_file(template)
         parser = DefaultParser(tokens)
         program = parser.parse()
-        code = DefaultRenderer.generate_pre_code(program)
+        code = DefaultRenderer.generate_pre_code(program, **kwargs)
         self._cache[template] = code
 
         return DefaultRenderer.render_pre(code, **kwargs)
