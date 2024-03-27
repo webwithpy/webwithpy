@@ -1,8 +1,11 @@
+import json
+
 from requests_toolbelt.multipart import decoder
 
 
 class BaseHTTPRequestParser:
     def __init__(self, raw_request: bytes):
+        print(raw_request)
         self.method, self.path, self.query_params, self.form_data = self._parse_request(
             raw_request
         )
@@ -80,7 +83,7 @@ class MultipartHTTPRequestParser(BaseHTTPRequestParser):
     def _parse_body(header: bytes, body: bytes) -> dict[str, str]:
         content_type = None
         for line in header.split(b"\n"):
-            if line.startswith(b"Content-Type:"):
+            if line.lower().startswith(b"content-type:"):
                 content_type = line.split(b": ")[1]
 
         if content_type and b"multipart/form-data" in content_type:
@@ -118,7 +121,7 @@ class FormURLEncodedHTTPRequestParser(BaseHTTPRequestParser):
     def _parse_body(header: bytearray, body: bytearray) -> dict[str, str]:
         content_type = None
         for line in header.split(b"\n"):
-            if line.startswith(b"Content-Type:"):
+            if line.lower().startswith(b"content-type:"):
                 content_type = line.split(b": ")[1]
 
         if content_type and b"application/x-www-form-urlencoded" in content_type:
@@ -127,5 +130,19 @@ class FormURLEncodedHTTPRequestParser(BaseHTTPRequestParser):
                 key, value = param.split(b"=")
                 form_data[key] = value
             return form_data
+        else:
+            return {}
+
+
+class JsonHTTPRequestParser(BaseHTTPRequestParser):
+    @staticmethod
+    def _parse_body(header: bytearray, body: bytearray) -> dict[str, str]:
+        content_type = None
+        for line in header.split(b"\n"):
+            if line.lower().startswith(b"content-type:"):
+                content_type = line.split(b": ")[1]
+
+        if content_type and b"application/json" in content_type:
+            return json.loads(body.decode("utf-8"))
         else:
             return {}

@@ -1,7 +1,11 @@
 from ..exeptions.RouteExceptions import RouteNotFound
 from ..routing.router import Router
 from .response import Response
-from .request import MultipartHTTPRequestParser, FormURLEncodedHTTPRequestParser
+from .request import (
+    MultipartHTTPRequestParser,
+    FormURLEncodedHTTPRequestParser,
+    JsonHTTPRequestParser,
+)
 from ..app import App
 from asyncio import AbstractEventLoop, StreamWriter
 import socket
@@ -69,12 +73,14 @@ class HTTPHandler:
     def choose_parser(cls, raw_request: bytes):
         headers = raw_request.split(b"\r\n")
         for line in headers:
-            if line.startswith(b"Content-Type:"):
+            if line.lower().startswith(b"content-type:"):
                 content_type = line.split(b": ")[1]
                 if b"multipart/form-data" in content_type:
                     return MultipartHTTPRequestParser(raw_request)
                 elif b"application/x-www-form-urlencoded" in content_type:
                     return FormURLEncodedHTTPRequestParser(raw_request)
+                elif b"application/json" in content_type:
+                    return JsonHTTPRequestParser(raw_request)
         # Default to MultipartHTTPRequestParser if content type not found
         return MultipartHTTPRequestParser(raw_request)
 
