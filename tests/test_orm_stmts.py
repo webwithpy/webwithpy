@@ -44,4 +44,14 @@ class TestOrm(TestCase):
         for sql_id in ids:
             db.test2.insert(test_1_id=sql_id["id"])
 
-        print((db.test.id == db.test2.test_1_id).select(debug=True))
+        print((db.test.id == db.test2.test_1_id).select(debug=True)[0])
+        print((db.test2.test_1_id == db.test.id).select(debug=True)[0])
+
+        self.assertFalse(
+            "INNER JOIN" in (db.test.id == db.test2.test_1_id).select(debug=True)[0]
+        )
+
+        # This should never be a left join since test.id isn't a reference to
+        self.assertTrue(
+            "INNER JOIN" in (db.test2.test_1_id == db.test.id).select(debug=True)[0]
+        )

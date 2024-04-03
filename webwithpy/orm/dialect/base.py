@@ -82,18 +82,10 @@ class IDialect:
                 table_name, join_table_name, full_where, args
             )
 
-            is_inner_join = any(
-                join_table_name in stmt
-                and isinstance(
-                    DB.tables[join_table_name].get_field(stmt.split(".")[1]),
-                    ReferencedField,
-                )
-                for stmt in on_stmt.split(" ")
-            )
             is_inner_join = False
             for stmt in on_stmt.split(" "):
-                if join_table_name in stmt and isinstance(
-                    DB.tables[join_table_name].get_field(stmt.split(".")[1]),
+                if table_name in stmt and isinstance(
+                    DB.tables[table_name].get_field(stmt.split(".")[1]),
                     ReferencedField,
                 ):
                     is_inner_join = True
