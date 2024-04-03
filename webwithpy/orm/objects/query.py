@@ -73,14 +73,11 @@ class ListedQuery(IQuery):
         return fields, res
 
     def __tables__(self) -> list[str]:
-        tables = set()
+        tables = []
         for query in self.queries:
             for table in query.__tables__():
-                tables.add(table)
-
-        tables = list(tables)
-        tables.reverse()
-
+                if table not in tables:
+                    tables.append(table)
         return tables
 
     def _add_query(self, q: Query, op: str) -> None:
@@ -150,12 +147,14 @@ class Query(IQuery):
         return fields, res
 
     def __tables__(self) -> list[str]:
-        tables = set()
+        tables = []
         if self.is_field(self.field1):
-            tables.add(self.field1.table_name)
+            tables.append(self.field1.table_name)
         if self.is_field(self.field2):
-            tables.add(self.field2.table_name)
-        return list(tables)
+            if self.field2.table_name not in tables:
+                tables.append(self.field2.table_name)
+
+        return tables
 
     def __and__(self, other: Query | ListedQuery) -> ListedQuery:
         if isinstance(other, Query):
