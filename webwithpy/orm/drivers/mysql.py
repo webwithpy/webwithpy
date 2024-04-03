@@ -58,8 +58,8 @@ class MysqlDriver(IDriver):
         order_by: Operation = None,
         group_by: Operation = None,
     ) -> list[Any]:
-        s_fields, stmt = query.build()
-        sql, s_fields = DB.dialect.select(
+        items, stmt = query.build()
+        sql, items = DB.dialect.select(
             stmt,
             query.__tables__(),
             select_operation,
@@ -67,10 +67,11 @@ class MysqlDriver(IDriver):
             fields,
             order_by,
             group_by,
-            s_fields,
+            items,
         )
 
-        return self.execute_sql(sql, s_fields)
+        items = ["null" if item is None else item for item in items]
+        return self.execute_sql(sql, items)
 
     def update(self, query: Query | ListedQuery, update_values: dict) -> None:
         fields, stmt = query.build()
