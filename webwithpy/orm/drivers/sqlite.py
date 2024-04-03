@@ -34,7 +34,10 @@ class SqliteDriver(IDriver):
         if not items:
             items = []
 
+        items = ["null" if item is None else item for item in items]
+        print(sql, items)
         result = self.conn.execute(sql, items).fetchall()
+
         self.conn.commit()
         return result
 
@@ -63,8 +66,16 @@ class SqliteDriver(IDriver):
             fields = []
 
         s_fields, stmt = query.build()
-        sql = DB.dialect.select(
-            stmt, query.__tables__(), select_operation, False, fields, order_by, group_by
+
+        sql, s_fields = DB.dialect.select(
+            stmt,
+            query.__tables__(),
+            select_operation,
+            False,
+            fields,
+            order_by,
+            group_by,
+            s_fields,
         )
 
         return self.execute_sql(sql, s_fields)

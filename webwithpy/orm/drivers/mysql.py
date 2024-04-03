@@ -56,10 +56,19 @@ class MysqlDriver(IDriver):
         fields: list[str] = None,
         select_operation: Operation = None,
         order_by: Operation = None,
-        group_by: Operation = None
+        group_by: Operation = None,
     ) -> list[Any]:
         s_fields, stmt = query.build()
-        sql = DB.dialect.select(stmt, query.__tables__(), False, fields, order_by, group_by)
+        sql, s_fields = DB.dialect.select(
+            stmt,
+            query.__tables__(),
+            select_operation,
+            False,
+            fields,
+            order_by,
+            group_by,
+            s_fields,
+        )
 
         return self.execute_sql(sql, s_fields)
 

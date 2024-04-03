@@ -6,9 +6,6 @@ from .query import Query
 
 import re
 
-if TYPE_CHECKING:
-    from ..dialect.base import IDialect
-
 
 class Reference:
     def __init__(self, start: int, end: int):
@@ -90,9 +87,12 @@ class DefaultField:
         if sql_type is None:
             return field_type
         return sql_type
-
+    
     def __eq__(self, other):
         return Query(self.driver, self, other, "=")
+
+    def __ne__(self, other):
+        return Query(self.driver, self, other, "!=")
 
     def __ge__(self, other):
         return Query(self.driver, self, other, ">=")
@@ -185,6 +185,8 @@ class Operation:
 
     def __str__(self):
         if self.operation:
-            return f"{self.operation}({self.field.__str__()}) {' '.join(self.extra_ops)}"
+            return (
+                f"{self.operation}({self.field.__str__()}) {' '.join(self.extra_ops)}"
+            )
         else:
             return f"{self.field.__str__()} {' '.join(self.extra_ops)}"

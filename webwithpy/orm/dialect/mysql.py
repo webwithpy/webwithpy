@@ -29,31 +29,14 @@ class MysqlDialect(IDialect):
         return f"INNER JOIN {table_name}{where}"
 
     @classmethod
-    def insert(cls, table: Table, items: dict[str, Any]):
-        return f"INSERT INTO {table.table_name} ({','.join(items.keys())}) VALUES ({','.join(['?' for _ in items.keys()])})"
+    def l_join(cls, table_name: str, where: str) -> str:
+        if where and not where.startswith(" ON "):
+            where += f" ON {where}"
+        return f"LEFT JOIN {table_name}{where}"
 
     @classmethod
-    def select(
-        cls,
-        query: str,
-        tables: list[str],
-        select_operation: dict[str, str],
-        distinct: bool,
-        fields: list[str],
-        order_by: Operation,
-        group_by: Operation
-    ):
-        fields = "*" if len(fields) == 0 else ",".join(fields)
-        non_join_table = tables.pop(0)
-        join = "\n".join([cls.i_join(name) for name in tables])
-        distinct_stmt = "DISTINCT " if distinct else ""
-        order_by = f"ORDER BY {order_by.__str__()}" if order_by else ""
-        group_by = f"GROUP BY {group_by.__str__()}" if group_by else ""
-
-        if select_operation:
-            fields = f"{select_operation.__str__()}, " + fields
-
-        return f"SELECT {distinct_stmt}{fields} FROM {non_join_table} {join} WHERE {query} {group_by} {order_by}"
+    def insert(cls, table: Table, items: dict[str, Any]):
+        return f"INSERT INTO {table.table_name} ({','.join(items.keys())}) VALUES ({','.join(['?' for _ in items.keys()])})"
 
     @classmethod
     def update(cls, query: str, tables: list[str], items: dict[str, Any]):

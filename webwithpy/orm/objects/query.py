@@ -41,7 +41,7 @@ class IQuery:
             fields=fields,
             select_operation=select_operation,
             order_by=order_by,
-            group_by=group_by
+            group_by=group_by,
         )
 
     def update(self, **items: Any) -> None:
@@ -73,7 +73,8 @@ class ListedQuery(IQuery):
     def __tables__(self) -> list[str]:
         tables = set()
         for query in self.queries:
-            tables.add(*query.__tables__())
+            for table in query.__tables__():
+                tables.add(table)
         return list(tables)
 
     def _add_query(self, q: Query, op: str) -> None:
@@ -113,9 +114,22 @@ class Query(IQuery):
         self.field2 = field2
         self.op = op
 
+    @staticmethod
+    def translate_none_operator(field: str, op: str):
+        print(field, op)
+
+        if field is None and op == "!=":
+            op = "IS NOT"
+        elif field is None and op == "=":
+            op = "IS"
+
+        return op
+
     def build(self) -> [list, str]:
         fields = []
         res = ""
+
+        self.op = self.translate_none_operator(self.field2, self.op)
 
         if not self.is_field(self.field1):
             fields.append(self.field1)
@@ -125,7 +139,7 @@ class Query(IQuery):
 
         if not self.is_field(self.field2):
             fields.append(self.field2)
-            res += f"? "
+            res += f"?"
         else:
             res += f"{self.field2} "
 
@@ -135,7 +149,7 @@ class Query(IQuery):
         tables = set()
         if self.is_field(self.field1):
             tables.add(self.field1.table_name)
-        elif self.is_field(self.field2):
+        if self.is_field(self.field2):
             tables.add(self.field2.table_name)
         return list(tables)
 
