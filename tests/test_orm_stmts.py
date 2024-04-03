@@ -21,37 +21,53 @@ class TestOrm(TestCase):
     def tearDown(self):
         self.db.close()
 
-    def test_insert_and_select_field(self):
+    def create_fields_test_tbl(self, size: int = 100):
         db = self.db
-        range_len = 100
 
-        for n in range(range_len):
+        for n in range(size):
             db.test.insert(num=n)
 
-        self.assertEqual(len((db.test.id != -1).select()), range_len)
+    def test_insert_and_select_field(self):
+        db = self.db
+        size = 100
+        self.create_fields_test_tbl(size)
+
+        self.assertEqual(len((db.test.id != -1).select()), size)
         db.test.insert(num=randint(0, 100))
-        self.assertNotEqual(len((db.test.id != -1).select()), range_len)
+        self.assertNotEqual(len((db.test.id != -1).select()), size)
 
     def test_reference(self):
         db = self.db
-        range_len = 100
-
-        for n in range(range_len):
-            db.test.insert(num=n)
+        self.create_fields_test_tbl()
 
         ids: list[dict[str, int]] = (db.test.id >= 0).select(fields=["id"])
 
         for sql_id in ids:
             db.test2.insert(test_1_id=sql_id["id"])
 
-        print((db.test.id == db.test2.test_1_id).select(debug=True)[0])
-        print((db.test2.test_1_id == db.test.id).select(debug=True)[0])
-
         self.assertFalse(
             "INNER JOIN" in (db.test.id == db.test2.test_1_id).select(debug=True)[0]
         )
 
+        size = 100
         # This should never be a left join since test.id isn't a reference to
         self.assertTrue(
             "INNER JOIN" in (db.test2.test_1_id == db.test.id).select(debug=True)[0]
         )
+
+    def test_update_field(self):
+        db = self.db
+
+        self.create_fields_test_tbl()
+        (db.test.id >= 0).update(num=100)
+        nums: list[dict[str, int]] = (db.test.id >= 0).select(fields=["num"])
+
+        for d in nums:
+            self.assertTrue(d["num"], 100)
+
+    def test_delete_field(self):
+        db = self.db
+
+        self.create_fields_test_tbl()
+        (db.test.id >= 0).delete()
+        self.assertTrue(len((db.test.id >= 0).select()) == 0)
