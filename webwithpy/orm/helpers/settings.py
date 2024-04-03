@@ -12,6 +12,11 @@ class DBSettings:
         self.password = ""
         self.database = ""
 
+        if ":memory:" in self.uri:
+            self.db_type = uri.split(":/", 1)[0]
+            self.path = ":memory:"
+            return
+
         self.parse_uri(uri)
         self.create_path()
 

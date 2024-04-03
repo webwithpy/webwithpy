@@ -81,14 +81,22 @@ class IDialect:
             on_stmt, full_where, args = cls.get_where_join_stmt(
                 table_name, join_table_name, full_where, args
             )
+
             is_inner_join = any(
                 join_table_name in stmt
                 and isinstance(
                     DB.tables[join_table_name].get_field(stmt.split(".")[1]),
                     ReferencedField,
                 )
-                for stmt in full_where.split(" ")
+                for stmt in on_stmt.split(" ")
             )
+            is_inner_join = False
+            for stmt in on_stmt.split(" "):
+                if join_table_name in stmt and isinstance(
+                    DB.tables[join_table_name].get_field(stmt.split(".")[1]),
+                    ReferencedField,
+                ):
+                    is_inner_join = True
 
             if is_inner_join:
                 join_stmt += cls.i_join(join_table_name, on_stmt)
@@ -111,7 +119,6 @@ class IDialect:
     ) -> tuple[str, list[any]]:
         fields = "*" if not fields else ",".join(fields)
         non_join_table = tables.pop(0)
-
         join, query, args = cls.get_join_stmt(non_join_table, tables, query, args)
 
         distinct_stmt = "DISTINCT " if distinct else ""

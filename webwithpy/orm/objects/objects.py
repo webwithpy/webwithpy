@@ -32,14 +32,6 @@ class Table:
     def insert(self, **items: Any):
         self.driver.insert(self, items)
 
-    def select(self):
-        # here we create a sql statement that is always true, so we can select all fields.
-        # this is necessary since driver.select expects a query
-        self.driver.select(
-            Query(self.driver, self.fields[0], 0, "=")
-            | Query(self.driver, self.fields, 0, "!="),
-        )
-
     def __getattribute__(self, item):
         try:
             return super().__getattribute__(item)
@@ -87,7 +79,7 @@ class DefaultField:
         if sql_type is None:
             return field_type
         return sql_type
-    
+
     def __eq__(self, other):
         return Query(self.driver, self, other, "=")
 

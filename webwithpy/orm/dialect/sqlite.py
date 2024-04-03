@@ -25,7 +25,7 @@ class SqliteDialect(IDialect):
     @classmethod
     def i_join(cls, table_name, where: str = ""):
         if where and not where.startswith(" ON "):
-            where += f" ON {where}"
+            where = f" ON {where}"
         return f"INNER JOIN {table_name}{where}"
 
     @classmethod

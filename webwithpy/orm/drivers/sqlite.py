@@ -20,6 +20,9 @@ class SqliteDriver(IDriver):
         self.connect()
         self.setup()
 
+    def close(self):
+        self.conn.close()
+
     def connect(self) -> None:
         self.conn = sqlite.connect(self.settings.path, timeout=10)
 
@@ -34,7 +37,6 @@ class SqliteDriver(IDriver):
         if not items:
             items = []
 
-        items = ["null" if item is None else item for item in items]
         result = self.conn.execute(sql, items).fetchall()
 
         self.conn.commit()
@@ -60,13 +62,14 @@ class SqliteDriver(IDriver):
         select_operation: Operation = None,
         order_by: Operation = None,
         group_by: Operation = None,
-    ) -> list[Any]:
+        debug: bool = False,
+    ) -> list[Any] | tuple[str, list[Any]]:
         if fields is None:
             fields = []
 
-        s_fields, stmt = query.build()
+        items, stmt = query.build()
 
-        sql, s_fields = DB.dialect.select(
+        sql, items = DB.dialect.select(
             stmt,
             query.__tables__(),
             select_operation,
@@ -74,10 +77,14 @@ class SqliteDriver(IDriver):
             fields,
             order_by,
             group_by,
-            s_fields,
+            items,
         )
 
-        return self.execute_sql(sql, s_fields)
+        items = ["null" if item is None else item for item in items]
+        if debug:
+            return sql, items
+
+        return self.execute_sql(sql, items)
 
     def update(self, query: Query | ListedQuery, update_values: dict) -> None:
         fields, stmt = query.build()

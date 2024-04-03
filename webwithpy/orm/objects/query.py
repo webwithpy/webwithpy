@@ -26,6 +26,7 @@ class IQuery:
         select_operation: Operation = None,
         order_by: Operation = None,
         group_by: Operation = None,
+        debug: bool = False,
     ):
         """
         :param fields: list of fields to select in query
@@ -42,6 +43,7 @@ class IQuery:
             select_operation=select_operation,
             order_by=order_by,
             group_by=group_by,
+            debug=debug,
         )
 
     def update(self, **items: Any) -> None:
@@ -75,7 +77,11 @@ class ListedQuery(IQuery):
         for query in self.queries:
             for table in query.__tables__():
                 tables.add(table)
-        return list(tables)
+
+        tables = list(tables)
+        tables.reverse()
+
+        return tables
 
     def _add_query(self, q: Query, op: str) -> None:
         self.queries.append(q)

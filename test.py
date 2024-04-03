@@ -5,8 +5,9 @@ from webwithpy.orm.auth import Auth, require_login
 from webwithpy import run_server
 from PIL import Image
 from io import BytesIO
+from random import randint
 
-db = DB("sqlite:/test.db")
+db = DB("sqlite:/:memory:")
 
 
 class Test(Table):
@@ -39,5 +40,5 @@ def test():
 
 if "__main__" == __name__:
     db.create_tables(Test, Test2)
-    auth = Auth(pretty_form=True)
-    run_server()
+    # auth = Auth(pretty_form=True)
+    # run_server()

@@ -64,6 +64,14 @@ class DB:
             self.create_table(table)
 
     @classmethod
+    def close(cls):
+        DB.driver.close()
+        DB.driver = None
+        DB.tables = None
+        DB.dialect = None
+        DB._settings = None
+
+    @classmethod
     def _set_field(
         cls, field: DefaultField, field_name: str, table_name: str, cache: bool
     ):

@@ -18,6 +18,9 @@ class MysqlDriver(IDriver):
         self.connect()
         self.setup()
 
+    def close(self):
+        self.conn.close()
+
     def connect(self):
         self.conn = Connect(
             host=self.settings.hostname,
@@ -57,7 +60,8 @@ class MysqlDriver(IDriver):
         select_operation: Operation = None,
         order_by: Operation = None,
         group_by: Operation = None,
-    ) -> list[Any]:
+        debug: bool = False,
+    ) -> list[Any] | tuple[str, list[Any]]:
         items, stmt = query.build()
         sql, items = DB.dialect.select(
             stmt,
@@ -71,6 +75,8 @@ class MysqlDriver(IDriver):
         )
 
         items = ["null" if item is None else item for item in items]
+        if debug:
+            return sql, items
         return self.execute_sql(sql, items)
 
     def update(self, query: Query | ListedQuery, update_values: dict) -> None:

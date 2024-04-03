@@ -25,13 +25,13 @@ class MysqlDialect(IDialect):
     @classmethod
     def i_join(cls, table_name, where: str = ""):
         if where and not where.startswith(" ON "):
-            where += f" ON {where}"
+            where = f" ON {where}"
         return f"INNER JOIN {table_name}{where}"
 
     @classmethod
     def l_join(cls, table_name: str, where: str) -> str:
         if where and not where.startswith(" ON "):
-            where += f" ON {where}"
+            where = f" ON {where}"
         return f"LEFT JOIN {table_name}{where}"
 
     @classmethod

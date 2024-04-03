@@ -16,6 +16,9 @@ class IDriver:
         self.settings = settings
         self.conn = None
 
+    def close(self):
+        ...
+
     def connect(self):
         ...
 
@@ -34,7 +37,8 @@ class IDriver:
         fields: list[str] = None,
         select_operation: Operation = None,
         order_by: Operation = None,
-        group_by: Operation = None
+        group_by: Operation = None,
+        debug: bool = False,
     ) -> list[Any]:
         ...
 
