@@ -116,8 +116,6 @@ class Query(IQuery):
 
     @staticmethod
     def translate_none_operator(field: str, op: str):
-        print(field, op)
-
         if field is None and op == "!=":
             op = "IS NOT"
         elif field is None and op == "=":

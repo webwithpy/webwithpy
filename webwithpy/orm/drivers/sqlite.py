@@ -35,7 +35,6 @@ class SqliteDriver(IDriver):
             items = []
 
         items = ["null" if item is None else item for item in items]
-        print(sql, items)
         result = self.conn.execute(sql, items).fetchall()
 
         self.conn.commit()
