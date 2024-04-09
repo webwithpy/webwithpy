@@ -33,9 +33,7 @@ class Lexer:
             middle_line = self.__filter_pyht(line=line[l_bracket + 2 : r_bracket])
             tokens.append(self.get_token_by_line(middle_line))
 
-            file_data[idx] = (
-                file_data[idx][:l_bracket] + file_data[idx][r_bracket + 2 :]
-            )
+            file_data[idx] = file_data[idx][r_bracket + 2 :]
 
             if "{{" in line:
                 continue
