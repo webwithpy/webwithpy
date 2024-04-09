@@ -49,7 +49,6 @@ class TestOrm(TestCase):
             "INNER JOIN" in (db.test.id == db.test2.test_1_id).select(debug=True)[0]
         )
 
-        size = 100
         # This should never be a left join since test.id isn't a reference to
         self.assertTrue(
             "INNER JOIN" in (db.test2.test_1_id == db.test.id).select(debug=True)[0]
