@@ -34,5 +34,5 @@ if __name__ == "__main__":
 ```
 
 ## Documentation
-The documentation is not fully done yet however it is something for now:
+for more detailed information about what the framework can do please goto:
 [webwithpy docs](https://webwithpy.readthedocs.io)

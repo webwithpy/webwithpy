@@ -5,7 +5,8 @@ from typing import List
 
 
 class Lexer:
-    def __init__(self): ...
+    def __init__(self):
+        ...
 
     def lex_file(self, file_path: Path | str) -> List[Token]:
         tokens = []
@@ -25,13 +26,6 @@ class Lexer:
             l_bracket = line.find("{{")
             r_bracket = line.find("}}")
 
-            # Add lines until the right bracket is found
-            while r_bracket == -1:
-                line += file_data[idx].strip(" ")
-                r_bracket = line.find("}}")
-                idx += 1
-                using_bracket_finder = True
-
             # make it so that everything outside the brackets is also parsed
             # append left
             tokens.append(Token(data=line[0:l_bracket], method=Methods.HTML))
@@ -39,15 +33,19 @@ class Lexer:
             middle_line = self.__filter_pyht(line=line[l_bracket + 2 : r_bracket])
             tokens.append(self.get_token_by_line(middle_line))
 
+            file_data[idx] = (
+                file_data[idx][:l_bracket] + file_data[idx][r_bracket + 2 :]
+            )
+
+            if "{{" in line:
+                continue
+
             # append right side of code
             tokens.append(
                 Token(data=line[r_bracket + 2 : len(line)], method=Methods.HTML)
             )
 
-            if using_bracket_finder:
-                using_bracket_finder = False
-            else:
-                idx += 1
+            idx += 1
 
         tokens.append(Token(data="EOF", method=Methods.EOF))
         return self.filter_tokens(tokens)
