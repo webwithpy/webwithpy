@@ -39,6 +39,7 @@ class RouteData:
         method: str,
         template: Optional[Union[str, PathLike, None]] = "",
         content_type: Optional[str] = "text/html",
+        test_function: Optional[bool] = False,
         *args,
         **kwargs,
     ):
@@ -49,6 +50,7 @@ class RouteData:
         self.args = args
         self.kwargs = kwargs
         self.content_type = content_type
+        self.test_function = test_function
 
     async def call_func(self, _async: bool):
         """
@@ -71,7 +73,11 @@ class RouteData:
         # getter for url
         return self.url
 
-    def eq(self, url: str, method: str) -> bool:
+    def eq(self, url: str, method: str, testing: bool) -> bool:
+        # if we are not testing then we are NOT allowed to call these functions
+        if testing is False and self.test_function:
+            return False
+
         # checks if url and method is equal to current routed data
         return self.url == url and (
             self.method.lower() == method.lower() or self.method.lower() == "any"
@@ -88,6 +94,7 @@ class RouteData:
 class Router:
     # python hack for static vars
     routes: list[RouteData] = []
+    testing: bool = False
 
     @classmethod
     def add_route(cls, route: Route, **kwargs: Any):
@@ -119,7 +126,7 @@ class Router:
         :param method: method used by http
         """
         for route in Router.routes:
-            if route.eq(url, method):
+            if route.eq(url, method, Router.testing):
                 return route
 
         return None
@@ -131,9 +138,12 @@ class Router:
 
         :param route: route is simple an url in this case: '/route'
         """
-        for Router_route in Router.routes:
-            if Router_route.get_route() == route:
-                return Router_route
+        for router_route in Router.routes:
+            if router_route.get_route() == route:
+                if not Router.testing and router_route.test_function:
+                    return None
+
+                return router_route
         return None
 
     @classmethod
@@ -175,7 +185,6 @@ class Router:
     async def _handle_static_file(cls, route: str, method: str):
         if (file := Router._static_file_by_route(route)) is not None:
             return file, "", f"text/{Router._parse_suffix(Path(route).suffix)}"
-        elif route == "/favicon.ico":
-            file = pkgutil.get_data(__name__, "../static/favicon.ico")
+        elif "favicon.ico" in route:
             return "", "", ""
         raise RouteNotFound(route, method)

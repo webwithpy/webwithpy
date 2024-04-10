@@ -1,4 +1,4 @@
-webwithpy~=0.7.0.1
+webwithpy~=0.7.4.3
 setuptools~=69.0.2
 Cython~=3.0.5
 bcrypt~=3.2.0
@@ -6,3 +6,6 @@ PyJWT~=2.8.0
 asyncio~=3.4.3
 mysql-connector-python~=8.3.0
 requests-toolbelt~=1.0.0
+click~=8.1.4
+Pillow~=9.0.1
+requests~=2.31.0
