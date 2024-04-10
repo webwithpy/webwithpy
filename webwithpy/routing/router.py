@@ -17,6 +17,7 @@ class Route:
         method: str,
         template: Optional[str] = "",
         content_type: Optional[str] = "",
+        test_function: Optional[bool] = False,
     ):
         """
         :param func: function you want to be called whenever a user go to the given url
@@ -29,6 +30,7 @@ class Route:
         self.method = method
         self.template = template
         self.content_type = content_type
+        self.test_function = test_function
 
 
 class RouteData:
@@ -103,11 +105,12 @@ class Router:
         """
         Router.routes.append(
             RouteData(
-                route.func,
-                route.url,
-                route.method,
-                route.template,
-                route.content_type,
+                func=route.func,
+                url=route.url,
+                method=route.method,
+                template=route.template,
+                content_type=route.content_type,
+                test_function=route.test_function,
                 **kwargs,
             )
         )

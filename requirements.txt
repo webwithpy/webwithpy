@@ -7,5 +7,5 @@ asyncio~=3.4.3
 mysql-connector-python~=8.3.0
 requests-toolbelt~=1.0.0
 click~=8.1.4
-Pillow~=9.0.1
+Pillow~=10.3.0
 requests~=2.31.0
