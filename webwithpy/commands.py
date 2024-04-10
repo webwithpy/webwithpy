@@ -37,6 +37,9 @@ def find_main_file():
         if directory_contains_main(directory):
             return directory + "/__main__.py"
 
+    if directory_contains_main(os.getcwd()):
+        return os.getcwd() + "/__main__.py"
+
     raise Exception("No __main__.py files found")
 
 
