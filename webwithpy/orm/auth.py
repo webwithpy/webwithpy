@@ -173,6 +173,10 @@ class Auth(AuthValidator):
         if form.accepted:
             user_data: dict = form.form_data
             user_data.update({"uuid": App.request.cookies.get("session")})
+            if len((self.db.auth_user.email == user_data["email"]).select()) != 0:
+                form.error_msg = "Email already registered"
+                return form
+
             self.db.auth_user.insert(**user_data)
             return Redirect("/")
 
