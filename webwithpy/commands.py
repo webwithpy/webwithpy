@@ -1,6 +1,8 @@
+import sys
+
 from .routing.router import Router
 from .webwithpy import run_server
-from pydoc import importfile
+import runpy
 import click
 import os
 
@@ -35,12 +37,17 @@ def find_main_file():
     dirs = get_dirs()
     for directory in dirs:
         if directory_contains_main(directory):
-            return directory + "/__main__.py"
+            return directory
 
     if directory_contains_main(os.getcwd()):
-        return os.getcwd() + "/__main__.py"
+        return os.getcwd()
 
     raise Exception("No __main__.py files found")
+
+
+def load_main_module(directory: str) -> None:
+    sys.path.insert(1, directory)
+    runpy.run_path("__main__.py", run_name="__main__")
 
 
 @cli.command()
@@ -49,8 +56,7 @@ def find_main_file():
 def start(host: str, port: int):
     # import __main__ file
     main_file = find_main_file()
-    importfile(main_file)
-
+    load_main_module(main_file)
     # run server at cli host, port
     run_server(host, port)
 
@@ -62,6 +68,6 @@ def test():
 
     # import __main__ file
     main_file = find_main_file()
-    importfile(main_file)
+    load_main_module(main_file)
 
     run_server()

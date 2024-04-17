@@ -29,9 +29,7 @@ class Form(HtmlTag):
         self.tags = tags
 
     def __str__(self):
-        return (
-            f"<form enctype=multipart/form-data {self.attrs}>{''.join([tag.__str__() for tag in self.tags])}</form>"
-        )
+        return f"<form enctype=multipart/form-data {self.attrs}>{''.join([tag.__str__() for tag in self.tags])}</form>"
 
 
 class Label(HtmlTag):
@@ -45,8 +43,8 @@ class Label(HtmlTag):
 
 class Input(HtmlTag):
     def __init__(
-            self,
-            **attrs: Any,
+        self,
+        **attrs: Any,
     ):
         self.attrs = self.set_dict_attrs(attrs)
 
@@ -78,6 +76,9 @@ class Div(HtmlTag):
 
 class Img(HtmlTag):
     def __init__(self, image_bytes: bytes, image_type: str, **attrs: str):
+        if image_bytes is None:
+            self.attrs = self.set_dict_attrs(attrs)
+
         encoded_image_data = base64.b64encode(image_bytes)
         str_encoded_image_data = encoded_image_data.decode('utf-8')
         src = f'data:image/{image_type};base64,{str_encoded_image_data}'
@@ -131,11 +132,11 @@ class A(HtmlTag):
     """
 
     def __init__(
-            self,
-            *tags: str | HtmlTag,
-            _class: str = "",
-            _href: str = "",
-            **attrs: str,
+        self,
+        *tags: str | HtmlTag,
+        _class: str = "",
+        _href: str = "",
+        **attrs: str,
     ):
         self._class = self.set_tag(f"class='{_class}'", _class)
         self._href = self.set_tag(f'href="{_href}"', _href)
@@ -152,11 +153,11 @@ class P(HtmlTag):
     """
 
     def __init__(
-            self,
-            text: str = "",
-            _class: str = "",
-            _href: str = "",
-            **attrs: str,
+        self,
+        text: str = "",
+        _class: str = "",
+        _href: str = "",
+        **attrs: str,
     ):
         self.text = text
         self._class = self.set_tag(f"class='{_class}'", _class)
