@@ -78,6 +78,7 @@ class Img(HtmlTag):
     def __init__(self, image_bytes: bytes, image_type: str, **attrs: str):
         if image_bytes is None:
             self.attrs = self.set_dict_attrs(attrs)
+            return
 
         encoded_image_data = base64.b64encode(image_bytes)
         str_encoded_image_data = encoded_image_data.decode('utf-8')
